@@ -7,7 +7,7 @@ import SiteHeader from "../components/SiteHeader";
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Explore Noor Al-Aman Humanitarian shelter, widow and family, and medical support work.",
+    "Explore Noor Al-Aman Humanitarian work in shelter, family assistance, medical care, clean water, education, and food support.",
 };
 
 export default function ProjectsPage() {
@@ -18,7 +18,7 @@ export default function ProjectsPage() {
         <PageHero
           eyebrow="Our projects"
           title="Focused responses to real needs."
-          intro="Our current work reflects needs documented through authentic field records: safer shelter, essential family assistance, and urgent medical support."
+          intro="Our current work reflects needs documented through authentic field records: safer shelter, family assistance, medical care, clean water, education, and food support."
           image="/media/shelter-progress.webp"
           imageAlt="A bamboo shelter being constructed"
         />
@@ -110,6 +110,102 @@ export default function ProjectsPage() {
                 alt="A patient receiving hospital treatment for a bandaged leg"
               />
               <span>Emergency medical care</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--soft project-detail" id="clean-water">
+          <div className="shell project-detail__grid project-detail__grid--reverse">
+            <div className="project-detail__media">
+              <img
+                src="/media/clean-water.webp"
+                alt="Hands using clean water from a community hand pump"
+              />
+              <span>Community water access</span>
+            </div>
+            <div>
+              <p className="eyebrow">04 / Safe water</p>
+              <h2>Clean Water</h2>
+              <p className="lead">
+                Reliable water access supports health, hygiene, and everyday
+                safety for the whole community.
+              </p>
+              <p className="body-copy">
+                Our clean-water work focuses on practical community water
+                points that make safer water easier to reach. Field images are
+                framed around the water source and its use, protecting the
+                identity of children wherever possible.
+              </p>
+              <ul className="check-list">
+                <li>Practical community water access</li>
+                <li>Support for daily hygiene and household needs</li>
+                <li>Privacy-conscious field documentation</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="section project-detail" id="education">
+          <div className="shell project-detail__grid">
+            <div>
+              <p className="eyebrow">05 / Learning</p>
+              <h2>Education Support</h2>
+              <p className="lead">
+                A simple, welcoming place to learn can give children structure,
+                confidence, and hope.
+              </p>
+              <p className="body-copy">
+                Education support helps sustain basic lessons and community
+                learning in modest local classrooms. Alongside basic education,
+                our field records also document Quran and Arabic learning in
+                community settings.
+              </p>
+              <ul className="check-list">
+                <li>Basic learning in community classrooms</li>
+                <li>Support for Quran and Arabic study</li>
+                <li>Careful protection of children&apos;s privacy</li>
+              </ul>
+            </div>
+            <div className="project-detail__media">
+              <img
+                src="/media/education-support.webp"
+                alt="Children studying together in a community classroom"
+              />
+              <span>Community learning</span>
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="section section--soft project-detail"
+          id="food-assistance"
+        >
+          <div className="shell project-detail__grid project-detail__grid--reverse">
+            <div className="project-detail__media">
+              <img
+                src="/media/food-assistance.webp"
+                alt="Rice, cooking oil, coconuts, and other food supplies prepared for distribution"
+              />
+              <span>Essential food support</span>
+            </div>
+            <div>
+              <p className="eyebrow">06 / Essential food</p>
+              <h2>Food Assistance</h2>
+              <p className="lead">
+                When household resources are stretched, dependable food support
+                can protect health and ease immediate pressure.
+              </p>
+              <p className="body-copy">
+                Our food response includes essential grocery packages and
+                prepared meals, distributed directly and respectfully.
+                Public-facing records focus on the assistance and shared
+                activity rather than exposing individual hardship.
+              </p>
+              <ul className="check-list">
+                <li>Essential household food packages</li>
+                <li>Prepared meals for community needs</li>
+                <li>Direct and respectful distribution</li>
+              </ul>
             </div>
           </div>
         </section>

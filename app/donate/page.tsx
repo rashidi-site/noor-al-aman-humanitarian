@@ -19,8 +19,8 @@ export default function DonatePage() {
           eyebrow="Support our work"
           title="Give with compassion. Give with confidence."
           intro="Responsible support should be connected to a clear need, a verified channel, and transparent communication."
-          image="/media/shelter-complete.webp"
-          imageAlt="Completed shelter built with bamboo"
+          image="/media/food-assistance.webp"
+          imageAlt="Essential food supplies prepared for distribution"
         />
 
         <section className="section">
@@ -32,7 +32,8 @@ export default function DonatePage() {
             <div>
               <p className="lead">
                 Support can help a family move toward safer shelter, meet
-                essential household needs, or access urgent medical treatment.
+                essential household needs, access medical treatment, find safer
+                water, continue learning, or receive food assistance.
               </p>
               <p className="body-copy">
                 Verified donation instructions are not published on this page
@@ -49,7 +50,7 @@ export default function DonatePage() {
             <div className="section-heading">
               <div>
                 <p className="eyebrow">Where support can help</p>
-                <h2>Three areas of immediate work</h2>
+                <h2>Six areas of practical support</h2>
               </div>
             </div>
             <div className="support-grid">
@@ -77,6 +78,30 @@ export default function DonatePage() {
                   emergency.
                 </p>
               </article>
+              <article>
+                <span>04</span>
+                <h3>Clean water</h3>
+                <p>
+                  Practical community water points for safer daily access and
+                  hygiene.
+                </p>
+              </article>
+              <article>
+                <span>05</span>
+                <h3>Education</h3>
+                <p>
+                  Support for basic lessons and community learning in modest
+                  local classrooms.
+                </p>
+              </article>
+              <article>
+                <span>06</span>
+                <h3>Food assistance</h3>
+                <p>
+                  Essential grocery packages and prepared meals for families
+                  facing acute hardship.
+                </p>
+              </article>
             </div>
           </div>
         </section>
@@ -85,8 +110,8 @@ export default function DonatePage() {
           <div className="shell giving-panel">
             <div className="giving-panel__image">
               <img
-                src="/media/shelter-interior.webp"
-                alt="Finished interior of a bamboo shelter"
+                src="/media/clean-water.webp"
+                alt="Hands using clean water from a community hand pump"
               />
             </div>
             <div className="giving-panel__copy">

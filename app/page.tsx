@@ -69,7 +69,8 @@ export default function Home() {
             <div>
               <p className="lead">
                 We support families affected by displacement, poverty, fragile
-                shelter, and medical emergencies in Bangladesh.
+                shelter, food insecurity, limited access to water and learning,
+                and medical emergencies in Bangladesh.
               </p>
               <p className="body-copy">
                 Our approach begins with listening. Assistance is shaped around
