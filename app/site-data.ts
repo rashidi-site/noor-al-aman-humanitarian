@@ -36,7 +36,7 @@ export const programs: Program[] = [
     summary:
       "Helping vulnerable patients access urgent treatment and essential care during medical emergencies.",
     image: "/media/medical-support.webp",
-    imageAlt: "A patient receiving hospital care for a bandaged leg",
+    imageAlt: "Both feet of a patient wrapped in medical bandages",
     label: "Urgent care",
   },
   {
@@ -68,5 +68,15 @@ export const programs: Program[] = [
     image: "/media/food-assistance.webp",
     imageAlt: "Essential food supplies prepared for distribution",
     label: "Essential food",
+  },
+  {
+    slug: "qurbani",
+    title: "Qurbani Meat Distribution",
+    shortTitle: "Qurbani",
+    summary:
+      "Preparing and sharing Qurbani meat with families facing hardship through respectful seasonal distribution.",
+    image: "/media/qurbani-distribution.webp",
+    imageAlt: "Packaged Qurbani meat portions prepared for distribution",
+    label: "Seasonal support",
   },
 ];

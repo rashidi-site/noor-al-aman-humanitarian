@@ -466,6 +466,11 @@ h3 {
   gap: 22px;
 }
 
+.program-card:last-child:nth-child(3n + 1),
+.support-grid article:last-child:nth-child(3n + 1) {
+  grid-column: 2;
+}
+
 .program-card {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -1204,6 +1209,11 @@ h3 {
   .process-grid,
   .support-grid {
     grid-template-columns: 1fr;
+  }
+
+  .program-card:last-child:nth-child(3n + 1),
+  .support-grid article:last-child:nth-child(3n + 1) {
+    grid-column: auto;
   }
 
   .program-card {

@@ -33,7 +33,8 @@ export default function DonatePage() {
               <p className="lead">
                 Support can help a family move toward safer shelter, meet
                 essential household needs, access medical treatment, find safer
-                water, continue learning, or receive food assistance.
+                water, continue learning, receive food assistance, or benefit
+                from seasonal Qurbani distribution.
               </p>
               <p className="body-copy">
                 Verified donation instructions are not published on this page
@@ -50,7 +51,7 @@ export default function DonatePage() {
             <div className="section-heading">
               <div>
                 <p className="eyebrow">Where support can help</p>
-                <h2>Six areas of practical support</h2>
+                <h2>Seven areas of practical support</h2>
               </div>
             </div>
             <div className="support-grid">
@@ -100,6 +101,14 @@ export default function DonatePage() {
                 <p>
                   Essential grocery packages and prepared meals for families
                   facing acute hardship.
+                </p>
+              </article>
+              <article>
+                <span>07</span>
+                <h3>Qurbani distribution</h3>
+                <p>
+                  Carefully prepared meat portions shared with families during
+                  the Qurbani season.
                 </p>
               </article>
             </div>

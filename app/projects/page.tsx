@@ -7,7 +7,7 @@ import SiteHeader from "../components/SiteHeader";
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Explore Noor Al-Aman Humanitarian work in shelter, family assistance, medical care, clean water, education, and food support.",
+    "Explore Noor Al-Aman Humanitarian work in shelter, family assistance, medical care, clean water, education, food support, and Qurbani distribution.",
 };
 
 export default function ProjectsPage() {
@@ -18,7 +18,7 @@ export default function ProjectsPage() {
         <PageHero
           eyebrow="Our projects"
           title="Focused responses to real needs."
-          intro="Our current work reflects needs documented through authentic field records: safer shelter, family assistance, medical care, clean water, education, and food support."
+          intro="Our current work reflects needs documented through authentic field records: safer shelter, family assistance, medical care, clean water, education, food support, and seasonal Qurbani distribution."
           image="/media/shelter-progress.webp"
           imageAlt="A bamboo shelter being constructed"
         />
@@ -107,9 +107,9 @@ export default function ProjectsPage() {
             <div className="project-detail__media">
               <img
                 src="/media/medical-support.webp"
-                alt="A patient receiving hospital treatment for a bandaged leg"
+                alt="Both feet of a patient wrapped in medical bandages"
               />
-              <span>Emergency medical care</span>
+              <span>Medical treatment support</span>
             </div>
           </div>
         </section>
@@ -206,6 +206,37 @@ export default function ProjectsPage() {
                 <li>Prepared meals for community needs</li>
                 <li>Direct and respectful distribution</li>
               </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="section project-detail" id="qurbani">
+          <div className="shell project-detail__grid">
+            <div>
+              <p className="eyebrow">07 / Seasonal support</p>
+              <h2>Qurbani Meat Distribution</h2>
+              <p className="lead">
+                Qurbani creates an opportunity to share nourishing food with
+                families who may rarely be able to afford meat.
+              </p>
+              <p className="body-copy">
+                Our seasonal response supports careful preparation, portioning,
+                and distribution of Qurbani meat to households facing hardship.
+                Public documentation focuses on packaged family portions rather
+                than slaughter or graphic processing.
+              </p>
+              <ul className="check-list">
+                <li>Seasonal Qurbani meat support</li>
+                <li>Family portions prepared for distribution</li>
+                <li>Respectful, non-graphic public documentation</li>
+              </ul>
+            </div>
+            <div className="project-detail__media">
+              <img
+                src="/media/qurbani-distribution.webp"
+                alt="Packaged Qurbani meat portions prepared for distribution"
+              />
+              <span>Prepared family portions</span>
             </div>
           </div>
         </section>
