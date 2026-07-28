@@ -27,6 +27,26 @@ export type Program = {
   publishedAt?: string | null;
 };
 
+export const ramadanIftarEventMedia: ProjectMedia[] = [
+  {
+    url: "/media/ramadan-iftar-community.webp",
+    type: "image",
+    altText: "Community members seated together for a shared Iftar meal",
+  },
+  {
+    url: "/media/ramadan-iftar-children.webp",
+    type: "image",
+    altText:
+      "Children seated around a shared Iftar meal before breaking their fast",
+  },
+  {
+    url: "/media/ramadan-iftar-meal.webp",
+    type: "image",
+    altText:
+      "An Iftar plate with chickpeas, fruit, dates, water, and juice",
+  },
+];
+
 export const programs: Program[] = [
   {
     id: "program-shelter",
@@ -241,6 +261,7 @@ export const programs: Program[] = [
         altText:
           "Prepared Ramadan food packages ready for distribution to families",
       },
+      ...ramadanIftarEventMedia,
     ],
     label: "Ramadan support",
     eyebrow: "Ramadan support",
@@ -389,6 +410,38 @@ export const originalMedia: MediaItem[] = [
     size: 0,
     altText: "Prepared Ramadan food packages ready for distribution to families",
     createdAt: "2026-07-28T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-ramadan-iftar-community",
+    name: "Community Iftar gathering",
+    url: "/media/ramadan-iftar-community.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "Community members seated together for a shared Iftar meal",
+    createdAt: "2026-07-29T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-ramadan-iftar-children",
+    name: "Children's Iftar gathering",
+    url: "/media/ramadan-iftar-children.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText:
+      "Children seated around a shared Iftar meal before breaking their fast",
+    createdAt: "2026-07-29T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-ramadan-iftar-meal",
+    name: "Prepared Iftar meal",
+    url: "/media/ramadan-iftar-meal.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText:
+      "An Iftar plate with chickpeas, fruit, dates, water, and juice",
+    createdAt: "2026-07-29T00:00:00.000Z",
     isProtected: true,
   },
   {

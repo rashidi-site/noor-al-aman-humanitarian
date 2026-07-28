@@ -3,6 +3,7 @@ import { siteContentDefaults } from "@/app/cms-content";
 import {
   originalMedia,
   programs as fallbackPrograms,
+  ramadanIftarEventMedia,
   type MediaItem,
   type Program,
   type ProjectMedia,
@@ -257,6 +258,73 @@ async function initializeCms(): Promise<void> {
         .run();
     }
   }
+
+  const iftarGalleryMigrationKey =
+    "__system_2026_07_29_ramadan_iftar_event_media";
+  const iftarGalleryMigration = await database
+    .prepare("SELECT key FROM site_content WHERE key = ?")
+    .bind(iftarGalleryMigrationKey)
+    .first<{ key: string }>();
+
+  if (!iftarGalleryMigration) {
+    const row = await database
+      .prepare(
+        "SELECT gallery_json, published_data FROM programs WHERE id = ?",
+      )
+      .bind("program-ramadan-iftar")
+      .first<{ gallery_json: string; published_data: string | null }>();
+
+    if (row) {
+      const draftGallery = mergeGalleryMedia(
+        parseGallery(row.gallery_json),
+        ramadanIftarEventMedia,
+      );
+      let publishedData = row.published_data;
+
+      if (publishedData) {
+        try {
+          const snapshot = JSON.parse(publishedData) as Record<string, unknown>;
+          const publishedGallery = parseGallery(
+            JSON.stringify(snapshot.gallery ?? []),
+          );
+          snapshot.gallery = mergeGalleryMedia(
+            publishedGallery,
+            ramadanIftarEventMedia,
+          );
+          publishedData = JSON.stringify(snapshot);
+        } catch {
+          const fallback = fallbackPrograms.find(
+            (program) => program.id === "program-ramadan-iftar",
+          );
+          if (fallback) {
+            publishedData = JSON.stringify(publicProgramSnapshot(fallback));
+          }
+        }
+      }
+
+      await database
+        .prepare(
+          `UPDATE programs
+           SET gallery_json = ?, published_data = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
+        )
+        .bind(
+          JSON.stringify(draftGallery),
+          publishedData,
+          "program-ramadan-iftar",
+        )
+        .run();
+
+      await database
+        .prepare(
+          `INSERT OR IGNORE INTO site_content (
+            key, draft_value, published_value, published_at
+          ) VALUES (?, 'complete', 'complete', CURRENT_TIMESTAMP)`,
+        )
+        .bind(iftarGalleryMigrationKey)
+        .run();
+    }
+  }
 }
 
 function parseBullets(value: string): string[] {
@@ -291,6 +359,21 @@ function parseGallery(value: string | undefined | null): ProjectMedia[] {
   } catch {
     return [];
   }
+}
+
+function mergeGalleryMedia(
+  current: ProjectMedia[],
+  additions: ProjectMedia[],
+): ProjectMedia[] {
+  const seen = new Set(current.map((item) => item.url));
+  return [
+    ...current,
+    ...additions.filter((item) => {
+      if (seen.has(item.url)) return false;
+      seen.add(item.url);
+      return true;
+    }),
+  ];
 }
 
 function publicProgramSnapshot(program: Program): Program {
