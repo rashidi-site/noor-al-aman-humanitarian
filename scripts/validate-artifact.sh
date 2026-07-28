@@ -21,10 +21,26 @@ hosting="${SITES_PROJECT_ROOT}/dist/.openai/hosting.json"
 
 node --input-type=module - "${worker}" "${hosting}" <<'NODE'
 import { readFile } from "node:fs/promises";
+import { registerHooks } from "node:module";
 import { pathToFileURL } from "node:url";
 
 const [workerPath, hostingPath] = process.argv.slice(2);
 JSON.parse(await readFile(hostingPath, "utf8"));
+
+// Cloudflare provides this built-in module in production. Node does not know
+// the `cloudflare:` URL scheme, so provide the smallest validation-only stub
+// needed to import the generated Worker and verify its public entrypoint.
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "cloudflare:workers") {
+      return {
+        url: "data:text/javascript,export const env = {};",
+        shortCircuit: true,
+      };
+    }
+    return nextResolve(specifier, context);
+  },
+});
 
 const workerUrl = pathToFileURL(workerPath);
 workerUrl.searchParams.set("sites-validation", `${process.pid}-${Date.now()}`);
