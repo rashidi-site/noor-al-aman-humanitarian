@@ -32,8 +32,7 @@ const navigation: Array<{
   { id: "media", label: "Media", hint: "Images and videos", icon: "▣" },
 ];
 
-function newProgramTemplate(programs: Program[], media: MediaItem[]): Program {
-  const firstImage = media.find((item) => item.contentType.startsWith("image/"));
+function newProgramTemplate(programs: Program[]): Program {
   const highestOrder = programs.reduce(
     (highest, program) => Math.max(highest, program.sortOrder),
     0,
@@ -45,8 +44,9 @@ function newProgramTemplate(programs: Program[], media: MediaItem[]): Program {
     title: "",
     shortTitle: "",
     summary: "",
-    image: firstImage?.url ?? "",
+    image: "",
     imageAlt: "",
+    video: "",
     label: "",
     eyebrow: "",
     lead: "",
@@ -126,7 +126,7 @@ export default function AdminDashboard({
   }
 
   function startNewProgram() {
-    setProgramDraft(newProgramTemplate(programs, media));
+    setProgramDraft(newProgramTemplate(programs));
     setActiveTab("programs");
     setNotice(null);
   }
@@ -267,6 +267,22 @@ export default function AdminDashboard({
     }
   }
 
+  async function createUploadedMedia(
+    file: File,
+    altText: string,
+  ): Promise<MediaItem> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("altText", altText);
+    const response = await fetch("/api/admin/media", {
+      method: "POST",
+      body: form,
+    });
+    const data = await readJsonResponse<{ media: MediaItem }>(response);
+    setMedia((current) => [data.media, ...current]);
+    return data.media;
+  }
+
   async function uploadMedia() {
     if (!uploadFile) {
       showNotice("error", "Select an image or video first.");
@@ -276,15 +292,7 @@ export default function AdminDashboard({
     setBusyAction("media-upload");
     setNotice(null);
     try {
-      const form = new FormData();
-      form.append("file", uploadFile);
-      form.append("altText", uploadAlt);
-      const response = await fetch("/api/admin/media", {
-        method: "POST",
-        body: form,
-      });
-      const data = await readJsonResponse<{ media: MediaItem }>(response);
-      setMedia((current) => [data.media, ...current]);
+      await createUploadedMedia(uploadFile, uploadAlt);
       setUploadFile(null);
       setUploadAlt("");
       setUploadKey((current) => current + 1);
@@ -297,6 +305,43 @@ export default function AdminDashboard({
         "error",
         error instanceof Error ? error.message : "The file could not be uploaded.",
       );
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function uploadProjectMedia(
+    file: File,
+    altText: string,
+  ): Promise<boolean> {
+    setBusyAction("program-media-upload");
+    setNotice(null);
+    try {
+      const uploaded = await createUploadedMedia(file, altText);
+      const isImage = uploaded.contentType.startsWith("image/");
+      setProgramDraft((current) => {
+        if (!current) return current;
+        return isImage
+          ? {
+              ...current,
+              image: uploaded.url,
+              imageAlt: uploaded.altText,
+            }
+          : { ...current, video: uploaded.url };
+      });
+      showNotice(
+        "success",
+        isImage
+          ? "Image uploaded and selected as this project's main image."
+          : "Video uploaded and selected as this project's video.",
+      );
+      return true;
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "The file could not be uploaded.",
+      );
+      return false;
     } finally {
       setBusyAction(null);
     }
@@ -557,12 +602,14 @@ export default function AdminDashboard({
                 <div className="admin-program-editor">
                   {programDraft ? (
                     <ProgramEditor
+                      key={programDraft.id || "new-project"}
                       program={programDraft}
                       media={media}
                       busyAction={busyAction}
                       onChange={updateProgram}
                       onSave={saveProgram}
                       onDelete={removeProgram}
+                      onUploadMedia={uploadProjectMedia}
                       onClose={() => setProgramDraft(null)}
                     />
                   ) : (
@@ -852,6 +899,7 @@ function ProgramEditor({
   onChange,
   onSave,
   onDelete,
+  onUploadMedia,
   onClose,
 }: {
   program: Program;
@@ -860,10 +908,36 @@ function ProgramEditor({
   onChange: <K extends keyof Program>(key: K, value: Program[K]) => void;
   onSave: (action: "draft" | "publish" | "unpublish") => void;
   onDelete: () => void;
+  onUploadMedia: (file: File, altText: string) => Promise<boolean>;
   onClose: () => void;
 }) {
+  const [projectUploadFile, setProjectUploadFile] = useState<File | null>(null);
+  const [projectUploadAlt, setProjectUploadAlt] = useState("");
+  const [projectUploadKey, setProjectUploadKey] = useState(0);
   const images = media.filter((item) => item.contentType.startsWith("image/"));
+  const videos = media.filter((item) => item.contentType.startsWith("video/"));
   const selectedImage = images.find((item) => item.url === program.image);
+  const selectedVideo = videos.find((item) => item.url === program.video);
+
+  function chooseProjectFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setProjectUploadFile(file);
+    if (file) {
+      setProjectUploadAlt(
+        file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "),
+      );
+    }
+  }
+
+  async function uploadAndUseProjectFile() {
+    if (!projectUploadFile) return;
+    const uploaded = await onUploadMedia(projectUploadFile, projectUploadAlt);
+    if (uploaded) {
+      setProjectUploadFile(null);
+      setProjectUploadAlt("");
+      setProjectUploadKey((current) => current + 1);
+    }
+  }
 
   return (
     <article className="admin-panel admin-form-panel admin-program-form">
@@ -889,6 +963,52 @@ function ProgramEditor({
           ×
         </button>
       </div>
+
+      <section className="admin-project-upload" aria-label="Project media upload">
+        <div className="admin-upload-icon">⇧</div>
+        <div className="admin-upload-copy">
+          <h3>Upload Image or Video</h3>
+          <p>
+            Choose a file from your phone or computer. An uploaded image becomes
+            the main project image; an uploaded video becomes the optional
+            project video. Images can be up to 25 MB and videos up to 80 MB.
+          </p>
+          <div className="admin-upload-fields">
+            <label className="admin-file-input">
+              <input
+                key={projectUploadKey}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm"
+                onChange={chooseProjectFile}
+              />
+              <span>
+                {projectUploadFile
+                  ? projectUploadFile.name
+                  : "Choose image or video"}
+              </span>
+            </label>
+            <label className="admin-field">
+              <span>Image or video description</span>
+              <input
+                dir="auto"
+                value={projectUploadAlt}
+                onChange={(event) => setProjectUploadAlt(event.target.value)}
+                placeholder="Example: Families receiving Iftar meals"
+              />
+            </label>
+            <button
+              type="button"
+              className="admin-button admin-button--primary"
+              disabled={!projectUploadFile || busyAction !== null}
+              onClick={uploadAndUseProjectFile}
+            >
+              {busyAction === "program-media-upload"
+                ? "Uploading…"
+                : "Upload and Use"}
+            </button>
+          </div>
+        </div>
+      </section>
 
       <div className="admin-form-grid">
         <label className="admin-field">
@@ -961,7 +1081,11 @@ function ProgramEditor({
         </label>
         <div className="admin-field admin-field--full">
           <span>Main project image *</span>
-          <div className="admin-media-picker">
+          <div
+            className={`admin-media-picker ${
+              selectedImage ? "" : "admin-media-picker--empty"
+            }`}
+          >
             {selectedImage && (
               <img src={selectedImage.url} alt={selectedImage.altText} />
             )}
@@ -988,6 +1112,39 @@ function ProgramEditor({
             placeholder="Describe what appears in the image"
           />
         </label>
+        <div className="admin-field admin-field--full">
+          <span>Project video (optional)</span>
+          <div
+            className={`admin-media-picker ${
+              selectedVideo ? "" : "admin-media-picker--empty"
+            }`}
+          >
+            {selectedVideo && (
+              <video
+                src={selectedVideo.url}
+                muted
+                playsInline
+                preload="metadata"
+              />
+            )}
+            <select
+              dir="auto"
+              value={program.video}
+              onChange={(event) => onChange("video", event.target.value)}
+            >
+              <option value="">No project video</option>
+              {videos.map((item) => (
+                <option key={item.id} value={item.url}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <small>
+            If selected, this video appears in the project detail section. The
+            main image is still used for project cards and as the video cover.
+          </small>
+        </div>
         <label className="admin-field admin-field--full">
           <span>Featured introduction</span>
           <textarea

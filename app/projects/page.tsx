@@ -42,8 +42,24 @@ function ProjectCopy({
 
 function ProjectMedia({ program }: { program: Program }) {
   return (
-    <div className="project-detail__media">
-      <img src={program.image} alt={program.imageAlt} />
+    <div
+      className={`project-detail__media ${
+        program.video ? "project-detail__media--video" : ""
+      }`}
+    >
+      {program.video ? (
+        <video
+          controls
+          playsInline
+          preload="metadata"
+          poster={program.image}
+          aria-label={`${program.title} project video`}
+        >
+          <source src={program.video} />
+        </video>
+      ) : (
+        <img src={program.image} alt={program.imageAlt} />
+      )}
       <span>{program.label}</span>
     </div>
   );

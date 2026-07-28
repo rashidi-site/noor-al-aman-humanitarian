@@ -6,6 +6,7 @@ export type Program = {
   summary: string;
   image: string;
   imageAlt: string;
+  video: string;
   label: string;
   eyebrow: string;
   lead: string;
@@ -29,6 +30,7 @@ export const programs: Program[] = [
       "Repairing and rebuilding fragile shelters so families have greater safety, privacy, and stability.",
     image: "/media/shelter-complete.webp",
     imageAlt: "A completed bamboo shelter",
+    video: "",
     label: "Safer homes",
     eyebrow: "Safer homes",
     lead:
@@ -51,6 +53,7 @@ export const programs: Program[] = [
       "Providing essential household assistance to widows and families facing severe economic hardship.",
     image: "/media/widow-support.webp",
     imageAlt: "A woman receiving a household support package",
+    video: "",
     label: "Essential assistance",
     eyebrow: "Essential assistance",
     lead:
@@ -73,6 +76,7 @@ export const programs: Program[] = [
       "Helping vulnerable patients access urgent treatment and essential care during medical emergencies.",
     image: "/media/medical-support.webp",
     imageAlt: "Both feet of a patient wrapped in medical bandages",
+    video: "",
     label: "Urgent care",
     eyebrow: "Urgent care",
     lead:
@@ -95,6 +99,7 @@ export const programs: Program[] = [
       "Improving access to safer, more reliable water through practical community water points.",
     image: "/media/clean-water.webp",
     imageAlt: "Children washing their hands with water from a community hand pump",
+    video: "",
     label: "Safe water",
     eyebrow: "Safe water",
     lead:
@@ -117,6 +122,7 @@ export const programs: Program[] = [
       "Supporting basic learning in community classrooms where children can study in a simple, shared space.",
     image: "/media/education-support.webp",
     imageAlt: "Children studying together in a community classroom",
+    video: "",
     label: "Learning",
     eyebrow: "Learning",
     lead:
@@ -139,6 +145,7 @@ export const programs: Program[] = [
       "Providing essential food packages and prepared meals to families facing acute hardship.",
     image: "/media/food-assistance.webp",
     imageAlt: "Essential food supplies prepared for distribution",
+    video: "",
     label: "Essential food",
     eyebrow: "Essential food",
     lead:
@@ -161,6 +168,7 @@ export const programs: Program[] = [
       "Preparing and sharing Qurbani meat with families facing hardship through respectful seasonal distribution.",
     image: "/media/qurbani-distribution.webp",
     imageAlt: "Packaged Qurbani meat portions prepared for distribution",
+    video: "",
     label: "Seasonal support",
     eyebrow: "Seasonal support",
     lead:

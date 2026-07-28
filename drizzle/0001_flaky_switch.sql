@@ -1,0 +1,1 @@
+ALTER TABLE `programs` ADD `video` text DEFAULT '' NOT NULL;

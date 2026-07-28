@@ -9,6 +9,7 @@ export const programs = sqliteTable("programs", {
   summary: text("summary").notNull(),
   image: text("image").notNull(),
   imageAlt: text("image_alt").notNull(),
+  video: text("video").notNull().default(""),
   label: text("label").notNull(),
   eyebrow: text("eyebrow").notNull(),
   lead: text("lead").notNull(),

@@ -869,11 +869,22 @@ h3 {
   min-height: 660px;
 }
 
-.project-detail__media img {
+.project-detail__media img,
+.project-detail__media video {
   width: 100%;
   height: 100%;
   min-height: inherit;
   object-fit: cover;
+}
+
+.project-detail__media video {
+  display: block;
+  background: var(--navy-deep);
+}
+
+.project-detail__media--video span {
+  top: 16px;
+  bottom: auto;
 }
 
 .project-detail__media--portrait img {
@@ -2487,6 +2498,10 @@ h3 {
   object-fit: cover;
 }
 
+.admin-media-picker--empty {
+  grid-template-columns: 1fr;
+}
+
 .admin-form-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2598,6 +2613,35 @@ h3 {
   gap: 21px;
   margin-bottom: 34px;
   padding: 27px;
+}
+
+.admin-project-upload {
+  display: flex;
+  align-items: flex-start;
+  gap: 17px;
+  margin-bottom: 25px;
+  border: 1px solid #cfe4d8;
+  border-radius: 9px;
+  background: #f3faf6;
+  padding: 20px;
+}
+
+.admin-project-upload .admin-upload-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 21px;
+}
+
+.admin-project-upload h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 16px;
+  font-weight: 780;
+  letter-spacing: -0.015em;
+}
+
+.admin-project-upload .admin-upload-fields {
+  grid-template-columns: minmax(155px, 0.75fr) minmax(210px, 1.25fr) auto;
 }
 
 .admin-upload-icon {
@@ -2902,6 +2946,10 @@ h3 {
     grid-template-columns: 1fr 1fr;
   }
 
+  .admin-project-upload .admin-upload-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .admin-upload-fields .admin-button {
     grid-column: 1 / -1;
   }
@@ -3022,12 +3070,17 @@ h3 {
     flex: 1;
   }
 
-  .admin-upload-panel {
+  .admin-upload-panel,
+  .admin-project-upload {
     flex-direction: column;
     padding: 22px;
   }
 
   .admin-upload-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-project-upload .admin-upload-fields {
     grid-template-columns: 1fr;
   }
 

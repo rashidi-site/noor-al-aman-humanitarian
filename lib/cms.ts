@@ -20,6 +20,7 @@ type ProgramRow = {
   summary: string;
   image: string;
   image_alt: string;
+  video: string;
   label: string;
   eyebrow: string;
   lead: string;
@@ -59,6 +60,7 @@ export type ProgramInput = {
   summary?: string;
   image?: string;
   imageAlt?: string;
+  video?: string;
   label?: string;
   eyebrow?: string;
   lead?: string;
@@ -123,6 +125,7 @@ async function initializeCms(): Promise<void> {
         summary TEXT NOT NULL,
         image TEXT NOT NULL,
         image_alt TEXT NOT NULL,
+        video TEXT NOT NULL DEFAULT '',
         label TEXT NOT NULL,
         eyebrow TEXT NOT NULL,
         lead TEXT NOT NULL,
@@ -169,10 +172,10 @@ async function initializeCms(): Promise<void> {
     return database
       .prepare(
         `INSERT OR IGNORE INTO programs (
-          id, slug, title, short_title, summary, image, image_alt, label,
+          id, slug, title, short_title, summary, image, image_alt, video, label,
           eyebrow, lead, body, bullets_json, sort_order, is_published,
           published_data, published_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, CURRENT_TIMESTAMP)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, CURRENT_TIMESTAMP)`,
       )
       .bind(
         program.id,
@@ -182,6 +185,7 @@ async function initializeCms(): Promise<void> {
         program.summary,
         program.image,
         program.imageAlt,
+        program.video,
         program.label,
         program.eyebrow,
         program.lead,
@@ -230,6 +234,7 @@ function publicProgramSnapshot(program: Program): Program {
     summary: program.summary,
     image: program.image,
     imageAlt: program.imageAlt,
+    video: program.video,
     label: program.label,
     eyebrow: program.eyebrow,
     lead: program.lead,
@@ -248,6 +253,7 @@ function rowToDraftProgram(row: ProgramRow): Program {
     summary: row.summary,
     image: row.image,
     imageAlt: row.image_alt,
+    video: row.video ?? "",
     label: row.label,
     eyebrow: row.eyebrow,
     lead: row.lead,
@@ -273,7 +279,10 @@ function rowToPublishedProgram(row: ProgramRow): Program | null {
   try {
     const snapshot = JSON.parse(row.published_data) as Program;
     if (!snapshot.id || !snapshot.slug || !snapshot.title) return null;
-    return snapshot;
+    return {
+      ...snapshot,
+      video: typeof snapshot.video === "string" ? snapshot.video : "",
+    };
   } catch {
     return null;
   }
@@ -357,6 +366,7 @@ function normalizeProgramInput(input: ProgramInput, existingId?: string): Progra
     summary: cleanText(input.summary, 500),
     image,
     imageAlt: cleanText(input.imageAlt, 250) || title,
+    video: cleanText(input.video, 500),
     label: cleanText(input.label, 70) || shortTitle,
     eyebrow: cleanText(input.eyebrow, 100) || shortTitle,
     lead: cleanText(input.lead, 700),
@@ -388,7 +398,7 @@ export async function saveProgram(
         .prepare(
           `UPDATE programs SET
             slug = ?, title = ?, short_title = ?, summary = ?, image = ?,
-            image_alt = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
+            image_alt = ?, video = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
             bullets_json = ?, sort_order = ?, is_published = 1,
             published_data = ?, published_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
@@ -401,6 +411,7 @@ export async function saveProgram(
           program.summary,
           program.image,
           program.imageAlt,
+          program.video,
           program.label,
           program.eyebrow,
           program.lead,
@@ -416,7 +427,7 @@ export async function saveProgram(
         .prepare(
           `UPDATE programs SET
             slug = ?, title = ?, short_title = ?, summary = ?, image = ?,
-            image_alt = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
+            image_alt = ?, video = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
             bullets_json = ?, sort_order = ?, is_published = 0,
             updated_at = CURRENT_TIMESTAMP
           WHERE id = ?`,
@@ -428,6 +439,7 @@ export async function saveProgram(
           program.summary,
           program.image,
           program.imageAlt,
+          program.video,
           program.label,
           program.eyebrow,
           program.lead,
@@ -442,7 +454,7 @@ export async function saveProgram(
         .prepare(
           `UPDATE programs SET
             slug = ?, title = ?, short_title = ?, summary = ?, image = ?,
-            image_alt = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
+            image_alt = ?, video = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
             bullets_json = ?, sort_order = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?`,
         )
@@ -453,6 +465,7 @@ export async function saveProgram(
           program.summary,
           program.image,
           program.imageAlt,
+          program.video,
           program.label,
           program.eyebrow,
           program.lead,
@@ -467,10 +480,10 @@ export async function saveProgram(
     await database
       .prepare(
         `INSERT INTO programs (
-          id, slug, title, short_title, summary, image, image_alt, label,
+          id, slug, title, short_title, summary, image, image_alt, video, label,
           eyebrow, lead, body, bullets_json, sort_order, is_published,
           published_data, published_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         program.id,
@@ -480,6 +493,7 @@ export async function saveProgram(
         program.summary,
         program.image,
         program.imageAlt,
+        program.video,
         program.label,
         program.eyebrow,
         program.lead,
@@ -677,10 +691,15 @@ export async function deleteMediaRecord(id: string): Promise<void> {
   const programReference = await database
     .prepare(
       `SELECT id FROM programs
-       WHERE image = ? OR published_data LIKE ?
+       WHERE image = ? OR video = ? OR published_data LIKE ? OR published_data LIKE ?
        LIMIT 1`,
     )
-    .bind(url, `%"image":"${url}"%`)
+    .bind(
+      url,
+      url,
+      `%"image":"${url}"%`,
+      `%"video":"${url}"%`,
+    )
     .first<{ id: string }>();
   const contentReference = await database
     .prepare(
