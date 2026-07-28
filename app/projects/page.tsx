@@ -9,7 +9,7 @@ import type { Program } from "../site-data";
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Explore Noor Al-Aman Humanitarian work in shelter, family assistance, medical care, clean water, education, food support, and Qurbani distribution.",
+    "Explore Noor Al-Aman Humanitarian work in shelter, family assistance, medical care, clean water, education, food support, Ramadan Iftar, and Qurbani distribution.",
 };
 
 export const dynamic = "force-dynamic";

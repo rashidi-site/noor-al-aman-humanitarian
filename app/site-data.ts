@@ -182,6 +182,30 @@ export const programs: Program[] = [
     ],
     sortOrder: 7,
   },
+  {
+    id: "program-ramadan-iftar",
+    slug: "ramadan-iftar",
+    title: "Ramadan Iftar & Food Support",
+    shortTitle: "Iftar support",
+    summary:
+      "Providing nourishing Iftar meals and essential Ramadan food support to families facing hardship.",
+    image: "/media/ramadan-iftar-support.webp",
+    imageAlt:
+      "Rice, cooking oil, milk, dates, and other Ramadan food supplies prepared for distribution",
+    video: "",
+    label: "Ramadan support",
+    eyebrow: "Ramadan support",
+    lead:
+      "For families living with hardship, the cost of a nourishing Iftar and essential Ramadan food can be difficult to meet.",
+    body:
+      "Our Ramadan Iftar programme provides prepared meals and essential food support to vulnerable families and individuals. Assistance is organised and delivered respectfully, with public documentation focused on the food and distribution process rather than personal hardship.",
+    bullets: [
+      "Nourishing Iftar meals during Ramadan",
+      "Essential Ramadan food packages for families",
+      "Direct distribution with dignity and care",
+    ],
+    sortOrder: 8,
+  },
 ];
 
 export type MediaItem = {
@@ -284,6 +308,17 @@ export const originalMedia: MediaItem[] = [
     size: 0,
     altText: "Food supplies prepared for distribution",
     createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-ramadan-iftar",
+    name: "Ramadan Iftar support",
+    url: "/media/ramadan-iftar-support.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText:
+      "Ramadan food supplies including rice, oil, milk, and dates prepared for distribution",
+    createdAt: "2026-07-28T00:00:00.000Z",
     isProtected: true,
   },
   {
