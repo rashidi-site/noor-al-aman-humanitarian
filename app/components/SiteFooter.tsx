@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { getPublishedSiteContent } from "@/lib/cms";
 
-export default function SiteFooter() {
+export default async function SiteFooter() {
+  const content = await getPublishedSiteContent();
+
   return (
     <footer className="site-footer">
       <div className="shell footer-grid">
@@ -12,7 +15,7 @@ export default function SiteFooter() {
               <small>Humanitarian</small>
             </span>
           </Link>
-          <p>Serving humanity with compassion and dignity.</p>
+          <p>{content["global.footerTagline"]}</p>
         </div>
         <div>
           <h2>Explore</h2>
@@ -25,13 +28,11 @@ export default function SiteFooter() {
           <Link href="/contact">Contact</Link>
           <Link href="/contact#partnerships">Partnerships</Link>
           <Link href="/contact#media">Media enquiries</Link>
+          <Link href="/admin">Admin</Link>
         </div>
         <div className="footer-note">
           <h2>Our commitment</h2>
-          <p>
-            We share field media selectively, protect personal dignity, and do
-            not publish sensitive identifying information.
-          </p>
+          <p>{content["global.footerCommitment"]}</p>
         </div>
       </div>
       <div className="shell footer-bottom">

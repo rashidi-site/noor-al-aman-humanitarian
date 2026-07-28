@@ -21,9 +21,16 @@ import Link from "next/link";
 import ProgramCard from "./components/ProgramCard";
 import SiteFooter from "./components/SiteFooter";
 import SiteHeader from "./components/SiteHeader";
-import { programs } from "./site-data";
+import { getPublishedPrograms, getPublishedSiteContent } from "@/lib/cms";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [programs, content] = await Promise.all([
+    getPublishedPrograms(),
+    getPublishedSiteContent(),
+  ]);
+
   return (
     <>
       <SiteHeader />
@@ -31,18 +38,17 @@ export default function Home() {
         <section className="home-hero">
           <img
             className="home-hero__image"
-            src="/media/shelter-complete.webp"
+            src={content["home.heroImage"]}
             alt="A completed bamboo shelter built for a vulnerable family"
           />
           <div className="home-hero__shade" aria-hidden="true" />
           <div className="shell home-hero__content">
             <p className="eyebrow eyebrow--light">
-              Community-led humanitarian response
+              {content["home.heroEyebrow"]}
             </p>
-            <h1>Relief that protects dignity.</h1>
+            <h1>{content["home.heroTitle"]}</h1>
             <p className="home-hero__intro">
-              Noor Al-Aman Humanitarian stands with vulnerable families through
-              practical support, local understanding, and compassionate action.
+              {content["home.heroIntro"]}
             </p>
             <div className="button-row">
               <Link className="button button--gold" href="/projects">
@@ -63,19 +69,12 @@ export default function Home() {
         <section className="section section--intro">
           <div className="shell split-heading">
             <div>
-              <p className="eyebrow">Our purpose</p>
-              <h2>Human care, grounded in real needs.</h2>
+              <p className="eyebrow">{content["home.purposeEyebrow"]}</p>
+              <h2>{content["home.purposeTitle"]}</h2>
             </div>
             <div>
-              <p className="lead">
-                We support families affected by displacement, poverty, fragile
-                shelter, food insecurity, limited access to water and learning,
-                medical emergencies, and seasonal needs in Bangladesh.
-              </p>
-              <p className="body-copy">
-                Our approach begins with listening. Assistance is shaped around
-                urgent needs, delivered respectfully, and documented carefully.
-              </p>
+              <p className="lead">{content["home.purposeLead"]}</p>
+              <p className="body-copy">{content["home.purposeBody"]}</p>
             </div>
           </div>
         </section>
@@ -84,8 +83,8 @@ export default function Home() {
           <div className="shell">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Where we focus</p>
-                <h2>Practical support for vulnerable families</h2>
+                <p className="eyebrow">{content["home.focusEyebrow"]}</p>
+                <h2>{content["home.focusTitle"]}</h2>
               </div>
               <Link className="text-link" href="/projects">
                 View all programmes <span aria-hidden="true">→</span>
@@ -102,17 +101,10 @@ export default function Home() {
         <section className="section">
           <div className="shell field-story">
             <div className="field-story__copy">
-              <p className="eyebrow">Field story</p>
-              <h2>From an exposed frame to a safer home</h2>
-              <p className="lead">
-                Shelter work is more than construction. It restores privacy,
-                protection, and a measure of stability for a family.
-              </p>
-              <p className="body-copy">
-                These real field photographs document a bamboo shelter during
-                construction and after completion. The design uses familiar
-                local materials and practical building methods.
-              </p>
+              <p className="eyebrow">{content["home.storyEyebrow"]}</p>
+              <h2>{content["home.storyTitle"]}</h2>
+              <p className="lead">{content["home.storyLead"]}</p>
+              <p className="body-copy">{content["home.storyBody"]}</p>
               <Link className="button button--navy" href="/projects#shelter">
                 See the shelter project
               </Link>
@@ -120,14 +112,14 @@ export default function Home() {
             <div className="before-after">
               <figure>
                 <img
-                  src="/media/shelter-progress.webp"
+                  src={content["home.storyBeforeImage"]}
                   alt="Bamboo shelter under construction"
                 />
                 <figcaption>During construction</figcaption>
               </figure>
               <figure>
                 <img
-                  src="/media/shelter-complete.webp"
+                  src={content["home.storyAfterImage"]}
                   alt="Completed bamboo shelter"
                 />
                 <figcaption>Completed shelter</figcaption>
@@ -140,38 +132,28 @@ export default function Home() {
           <div className="shell">
             <div className="section-heading section-heading--light">
               <div>
-                <p className="eyebrow eyebrow--gold">How we work</p>
-                <h2>Simple principles. Responsible action.</h2>
+                <p className="eyebrow eyebrow--gold">
+                  {content["home.processEyebrow"]}
+                </p>
+                <h2>{content["home.processTitle"]}</h2>
               </div>
-              <p>
-                Every response should respect the people it is intended to
-                serve.
-              </p>
+              <p>{content["home.processIntro"]}</p>
             </div>
             <div className="process-grid">
               <article>
                 <span>01</span>
-                <h3>Listen locally</h3>
-                <p>
-                  Understand the family&apos;s situation before deciding what
-                  support is appropriate.
-                </p>
+                <h3>{content["home.process1Title"]}</h3>
+                <p>{content["home.process1Body"]}</p>
               </article>
               <article>
                 <span>02</span>
-                <h3>Respond practically</h3>
-                <p>
-                  Focus on useful assistance that addresses a clear and
-                  immediate need.
-                </p>
+                <h3>{content["home.process2Title"]}</h3>
+                <p>{content["home.process2Body"]}</p>
               </article>
               <article>
                 <span>03</span>
-                <h3>Document carefully</h3>
-                <p>
-                  Record delivery while protecting personal dignity and
-                  avoiding unnecessary exposure.
-                </p>
+                <h3>{content["home.process3Title"]}</h3>
+                <p>{content["home.process3Body"]}</p>
               </article>
             </div>
           </div>
@@ -185,23 +167,17 @@ export default function Home() {
                 muted
                 playsInline
                 preload="metadata"
-                poster="/media/shelter-interior.webp"
+                poster={content["home.videoPoster"]}
+                src={content["home.videoUrl"]}
                 aria-label="Field video of a completed bamboo shelter"
-              >
-                <source src="/media/shelter-complete.mp4" type="video/mp4" />
-              </video>
+              />
             </div>
             <div className="video-story__copy">
-              <p className="eyebrow">A record of the work</p>
-              <h2>Real progress, shown with care</h2>
-              <p className="lead">
-                This short field video shows the interior of a completed
-                shelter. It is shared to demonstrate the work without exposing
-                the family receiving support.
-              </p>
+              <p className="eyebrow">{content["home.videoEyebrow"]}</p>
+              <h2>{content["home.videoTitle"]}</h2>
+              <p className="lead">{content["home.videoLead"]}</p>
               <p className="media-note">
-                Authentic field media • No staged imagery • Privacy-conscious
-                selection
+                {content["home.videoNote"]}
               </p>
             </div>
           </div>
@@ -210,8 +186,10 @@ export default function Home() {
         <section className="section section--cta">
           <div className="shell cta-panel">
             <div>
-              <p className="eyebrow eyebrow--gold">Stand with dignity</p>
-              <h2>Help turn compassion into practical support.</h2>
+              <p className="eyebrow eyebrow--gold">
+                {content["home.ctaEyebrow"]}
+              </p>
+              <h2>{content["home.ctaTitle"]}</h2>
             </div>
             <div className="button-row">
               <Link className="button button--gold" href="/donate">

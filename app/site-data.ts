@@ -1,4 +1,5 @@
 export type Program = {
+  id: string;
   slug: string;
   title: string;
   shortTitle: string;
@@ -6,10 +7,21 @@ export type Program = {
   image: string;
   imageAlt: string;
   label: string;
+  eyebrow: string;
+  lead: string;
+  body: string;
+  bullets: string[];
+  sortOrder: number;
+  isPublished?: boolean;
+  hasUnpublishedChanges?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string | null;
 };
 
 export const programs: Program[] = [
   {
+    id: "program-shelter",
     slug: "shelter",
     title: "Shelter Assistance",
     shortTitle: "Shelter",
@@ -18,8 +30,20 @@ export const programs: Program[] = [
     image: "/media/shelter-complete.webp",
     imageAlt: "A completed bamboo shelter",
     label: "Safer homes",
+    eyebrow: "Safer homes",
+    lead:
+      "Fragile shelter leaves families exposed to weather, insecurity, and a daily loss of privacy.",
+    body:
+      "Our shelter response supports repair and rebuilding with practical local materials. The work shown here moves from an exposed bamboo frame to enclosed walls, a finished floor, and a safer living space.",
+    bullets: [
+      "Needs-led repair and rebuilding",
+      "Locally familiar materials and methods",
+      "Privacy, weather protection, and safer living space",
+    ],
+    sortOrder: 1,
   },
   {
+    id: "program-widow-support",
     slug: "widow-support",
     title: "Widow & Family Support",
     shortTitle: "Family support",
@@ -28,8 +52,20 @@ export const programs: Program[] = [
     image: "/media/widow-support.webp",
     imageAlt: "A woman receiving a household support package",
     label: "Essential assistance",
+    eyebrow: "Essential assistance",
+    lead:
+      "Widows and households without stable income can face acute difficulty meeting basic daily needs.",
+    body:
+      "This programme provides practical household support with discretion. Assistance is handed directly to recipients, and field documentation is selected to protect dignity.",
+    bullets: [
+      "Essential household support",
+      "Direct, respectful delivery",
+      "Privacy-conscious documentation",
+    ],
+    sortOrder: 2,
   },
   {
+    id: "program-medical-support",
     slug: "medical-support",
     title: "Medical Support",
     shortTitle: "Medical care",
@@ -38,8 +74,20 @@ export const programs: Program[] = [
     image: "/media/medical-support.webp",
     imageAlt: "Both feet of a patient wrapped in medical bandages",
     label: "Urgent care",
+    eyebrow: "Urgent care",
+    lead:
+      "A medical emergency can become a financial emergency for a family already living with hardship.",
+    body:
+      "Medical assistance focuses on urgent, clearly identified needs. Public-facing images are cropped to avoid exposing identity or graphic injury while still documenting that care took place.",
+    bullets: [
+      "Support during urgent treatment",
+      "Attention to clearly identified medical needs",
+      "Respectful handling of patient information",
+    ],
+    sortOrder: 3,
   },
   {
+    id: "program-clean-water",
     slug: "clean-water",
     title: "Clean Water",
     shortTitle: "Clean water",
@@ -48,8 +96,20 @@ export const programs: Program[] = [
     image: "/media/clean-water.webp",
     imageAlt: "Children washing their hands with water from a community hand pump",
     label: "Safe water",
+    eyebrow: "Safe water",
+    lead:
+      "Reliable water access supports health, hygiene, and everyday safety for the whole community.",
+    body:
+      "Our clean-water work focuses on practical community water points that make safer water easier to reach. Field images are framed around the water source and its use, protecting the identity of children wherever possible.",
+    bullets: [
+      "Practical community water access",
+      "Support for daily hygiene and household needs",
+      "Privacy-conscious field documentation",
+    ],
+    sortOrder: 4,
   },
   {
+    id: "program-education",
     slug: "education",
     title: "Education Support",
     shortTitle: "Education",
@@ -58,8 +118,20 @@ export const programs: Program[] = [
     image: "/media/education-support.webp",
     imageAlt: "Children studying together in a community classroom",
     label: "Learning",
+    eyebrow: "Learning",
+    lead:
+      "A simple, welcoming place to learn can give children structure, confidence, and hope.",
+    body:
+      "Education support helps sustain basic lessons and community learning in modest local classrooms. Alongside basic education, our field records also document Quran and Arabic learning in community settings.",
+    bullets: [
+      "Basic learning in community classrooms",
+      "Support for Quran and Arabic study",
+      "Careful protection of children's privacy",
+    ],
+    sortOrder: 5,
   },
   {
+    id: "program-food-assistance",
     slug: "food-assistance",
     title: "Food Assistance",
     shortTitle: "Food support",
@@ -68,8 +140,20 @@ export const programs: Program[] = [
     image: "/media/food-assistance.webp",
     imageAlt: "Essential food supplies prepared for distribution",
     label: "Essential food",
+    eyebrow: "Essential food",
+    lead:
+      "When household resources are stretched, dependable food support can protect health and ease immediate pressure.",
+    body:
+      "Our food response includes essential grocery packages and prepared meals, distributed directly and respectfully. Public-facing records focus on the assistance and shared activity rather than exposing individual hardship.",
+    bullets: [
+      "Essential household food packages",
+      "Prepared meals for community needs",
+      "Direct and respectful distribution",
+    ],
+    sortOrder: 6,
   },
   {
+    id: "program-qurbani",
     slug: "qurbani",
     title: "Qurbani Meat Distribution",
     shortTitle: "Qurbani",
@@ -78,5 +162,140 @@ export const programs: Program[] = [
     image: "/media/qurbani-distribution.webp",
     imageAlt: "Packaged Qurbani meat portions prepared for distribution",
     label: "Seasonal support",
+    eyebrow: "Seasonal support",
+    lead:
+      "Qurbani creates an opportunity to share nourishing food with families who may rarely be able to afford meat.",
+    body:
+      "Our seasonal response supports careful preparation, portioning, and distribution of Qurbani meat to households facing hardship. Public documentation focuses on packaged family portions rather than slaughter or graphic processing.",
+    bullets: [
+      "Seasonal Qurbani meat support",
+      "Family portions prepared for distribution",
+      "Respectful, non-graphic public documentation",
+    ],
+    sortOrder: 7,
+  },
+];
+
+export type MediaItem = {
+  id: string;
+  name: string;
+  url: string;
+  contentType: string;
+  size: number;
+  altText: string;
+  createdAt: string;
+  isProtected?: boolean;
+};
+
+export const originalMedia: MediaItem[] = [
+  {
+    id: "original-shelter-complete",
+    name: "Completed shelter",
+    url: "/media/shelter-complete.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "A completed bamboo shelter",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-shelter-progress",
+    name: "Shelter in progress",
+    url: "/media/shelter-progress.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "A bamboo shelter under construction",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-shelter-before",
+    name: "Shelter before rebuilding",
+    url: "/media/shelter-before.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "A fragile shelter before rebuilding",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-shelter-interior",
+    name: "Shelter interior",
+    url: "/media/shelter-interior.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "Interior of a completed bamboo shelter",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-widow-support",
+    name: "Widow support",
+    url: "/media/widow-support.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "A woman receiving household assistance",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-medical-support",
+    name: "Medical support",
+    url: "/media/medical-support.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "A patient's feet wrapped in medical bandages",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-clean-water",
+    name: "Clean water",
+    url: "/media/clean-water.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "A community hand pump providing clean water",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-education",
+    name: "Education support",
+    url: "/media/education-support.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "Children studying in a community classroom",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-food-assistance",
+    name: "Food assistance",
+    url: "/media/food-assistance.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "Food supplies prepared for distribution",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-qurbani",
+    name: "Qurbani distribution",
+    url: "/media/qurbani-distribution.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "Packaged Qurbani meat portions ready for distribution",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-shelter-video",
+    name: "Completed shelter video",
+    url: "/media/shelter-complete.mp4",
+    contentType: "video/mp4",
+    size: 0,
+    altText: "Field video of a completed bamboo shelter",
+    createdAt: "2026-07-26T00:00:00.000Z",
+    isProtected: true,
   },
 ];
