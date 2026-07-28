@@ -15,6 +15,13 @@
       "when": 1785258172266,
       "tag": "0001_flaky_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785261015826,
+      "tag": "0002_broken_lilandra",
+      "breakpoints": true
     }
   ]
 }

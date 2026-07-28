@@ -3,7 +3,7 @@
 import { useMemo, useState, type ChangeEvent } from "react";
 import type { ContentField, ContentPage } from "../cms-content";
 import type { AdminDashboardData } from "@/lib/cms";
-import type { MediaItem, Program } from "../site-data";
+import type { MediaItem, Program, ProjectMedia } from "../site-data";
 
 type AdminTab = "overview" | "programs" | "content" | "media";
 
@@ -47,6 +47,7 @@ function newProgramTemplate(programs: Program[]): Program {
     image: "",
     imageAlt: "",
     video: "",
+    gallery: [],
     label: "",
     eyebrow: "",
     lead: "",
@@ -132,7 +133,11 @@ export default function AdminDashboard({
   }
 
   function editProgram(program: Program) {
-    setProgramDraft({ ...program, bullets: [...program.bullets] });
+    setProgramDraft({
+      ...program,
+      bullets: [...program.bullets],
+      gallery: [...(program.gallery ?? [])],
+    });
     setNotice(null);
   }
 
@@ -310,30 +315,52 @@ export default function AdminDashboard({
     }
   }
 
-  async function uploadProjectMedia(
-    file: File,
-    altText: string,
-  ): Promise<boolean> {
+  async function uploadProjectMedia(files: File[]): Promise<boolean> {
+    if (files.length === 0) return false;
+    if (files.length > 12) {
+      showNotice("error", "Upload up to 12 files at a time.");
+      return false;
+    }
+
     setBusyAction("program-media-upload");
     setNotice(null);
     try {
-      const uploaded = await createUploadedMedia(file, altText);
-      const isImage = uploaded.contentType.startsWith("image/");
+      const uploaded = await Promise.all(
+        files.map((file) =>
+          createUploadedMedia(
+            file,
+            file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "),
+          ),
+        ),
+      );
+
       setProgramDraft((current) => {
         if (!current) return current;
-        return isImage
-          ? {
-              ...current,
-              image: uploaded.url,
-              imageAlt: uploaded.altText,
-            }
-          : { ...current, video: uploaded.url };
+
+        let image = current.image;
+        let imageAlt = current.imageAlt;
+        const gallery = [...(current.gallery ?? [])];
+
+        for (const item of uploaded) {
+          const projectItem: ProjectMedia = {
+            url: item.url,
+            type: item.contentType.startsWith("video/") ? "video" : "image",
+            altText: item.altText,
+          };
+
+          if (!image && projectItem.type === "image") {
+            image = projectItem.url;
+            imageAlt = projectItem.altText;
+          } else if (!gallery.some((entry) => entry.url === projectItem.url)) {
+            gallery.push(projectItem);
+          }
+        }
+
+        return { ...current, image, imageAlt, gallery };
       });
       showNotice(
         "success",
-        isImage
-          ? "Image uploaded and selected as this project's main image."
-          : "Video uploaded and selected as this project's video.",
+        `${uploaded.length} ${uploaded.length === 1 ? "file" : "files"} uploaded and added to this project.`,
       );
       return true;
     } catch (error) {
@@ -908,35 +935,97 @@ function ProgramEditor({
   onChange: <K extends keyof Program>(key: K, value: Program[K]) => void;
   onSave: (action: "draft" | "publish" | "unpublish") => void;
   onDelete: () => void;
-  onUploadMedia: (file: File, altText: string) => Promise<boolean>;
+  onUploadMedia: (files: File[]) => Promise<boolean>;
   onClose: () => void;
 }) {
-  const [projectUploadFile, setProjectUploadFile] = useState<File | null>(null);
-  const [projectUploadAlt, setProjectUploadAlt] = useState("");
+  const [projectUploadFiles, setProjectUploadFiles] = useState<File[]>([]);
   const [projectUploadKey, setProjectUploadKey] = useState(0);
+  const [gallerySelection, setGallerySelection] = useState("");
   const images = media.filter((item) => item.contentType.startsWith("image/"));
   const videos = media.filter((item) => item.contentType.startsWith("video/"));
   const selectedImage = images.find((item) => item.url === program.image);
   const selectedVideo = videos.find((item) => item.url === program.video);
+  const gallery = program.gallery ?? [];
+  const galleryUrls = new Set(gallery.map((item) => item.url));
+  const availableGalleryMedia = media.filter(
+    (item) =>
+      item.url !== program.image &&
+      item.url !== program.video &&
+      !galleryUrls.has(item.url),
+  );
 
-  function chooseProjectFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null;
-    setProjectUploadFile(file);
-    if (file) {
-      setProjectUploadAlt(
-        file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "),
-      );
+  function chooseProjectFiles(event: ChangeEvent<HTMLInputElement>) {
+    setProjectUploadFiles(Array.from(event.target.files ?? []));
+  }
+
+  async function uploadAndUseProjectFiles() {
+    if (projectUploadFiles.length === 0) return;
+    const uploaded = await onUploadMedia(projectUploadFiles);
+    if (uploaded) {
+      setProjectUploadFiles([]);
+      setProjectUploadKey((current) => current + 1);
     }
   }
 
-  async function uploadAndUseProjectFile() {
-    if (!projectUploadFile) return;
-    const uploaded = await onUploadMedia(projectUploadFile, projectUploadAlt);
-    if (uploaded) {
-      setProjectUploadFile(null);
-      setProjectUploadAlt("");
-      setProjectUploadKey((current) => current + 1);
+  function addGalleryMedia() {
+    const selected = media.find((item) => item.url === gallerySelection);
+    if (!selected) return;
+
+    onChange("gallery", [
+      ...gallery,
+      {
+        url: selected.url,
+        type: selected.contentType.startsWith("video/") ? "video" : "image",
+        altText: selected.altText,
+      },
+    ]);
+    setGallerySelection("");
+  }
+
+  function updateGalleryAlt(index: number, altText: string) {
+    onChange(
+      "gallery",
+      gallery.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, altText } : item,
+      ),
+    );
+  }
+
+  function removeGalleryItem(index: number) {
+    onChange(
+      "gallery",
+      gallery.filter((_, itemIndex) => itemIndex !== index),
+    );
+  }
+
+  function moveGalleryItem(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= gallery.length) return;
+    const next = [...gallery];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange("gallery", next);
+  }
+
+  function makeMainImage(index: number) {
+    const item = gallery[index];
+    if (!item || item.type !== "image") return;
+
+    const next = gallery.filter((_, itemIndex) => itemIndex !== index);
+    if (
+      program.image &&
+      program.image !== item.url &&
+      !next.some((entry) => entry.url === program.image)
+    ) {
+      next.unshift({
+        url: program.image,
+        type: "image",
+        altText: program.imageAlt,
+      });
     }
+
+    onChange("image", item.url);
+    onChange("imageAlt", item.altText);
+    onChange("gallery", next);
   }
 
   return (
@@ -967,44 +1056,37 @@ function ProgramEditor({
       <section className="admin-project-upload" aria-label="Project media upload">
         <div className="admin-upload-icon">⇧</div>
         <div className="admin-upload-copy">
-          <h3>Upload Image or Video</h3>
+          <h3>Upload Project Images or Videos</h3>
           <p>
-            Choose a file from your phone or computer. An uploaded image becomes
-            the main project image; an uploaded video becomes the optional
-            project video. Images can be up to 25 MB and videos up to 80 MB.
+            Select one or several files from your phone or computer. They will
+            be added to this project gallery. The first image becomes the main
+            image only when the project does not already have one. Upload up to
+            12 files at a time.
           </p>
           <div className="admin-upload-fields">
             <label className="admin-file-input">
               <input
                 key={projectUploadKey}
                 type="file"
+                multiple
                 accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm"
-                onChange={chooseProjectFile}
+                onChange={chooseProjectFiles}
               />
               <span>
-                {projectUploadFile
-                  ? projectUploadFile.name
-                  : "Choose image or video"}
+                {projectUploadFiles.length > 0
+                  ? `${projectUploadFiles.length} ${projectUploadFiles.length === 1 ? "file" : "files"} selected`
+                  : "Choose images or videos"}
               </span>
-            </label>
-            <label className="admin-field">
-              <span>Image or video description</span>
-              <input
-                dir="auto"
-                value={projectUploadAlt}
-                onChange={(event) => setProjectUploadAlt(event.target.value)}
-                placeholder="Example: Families receiving Iftar meals"
-              />
             </label>
             <button
               type="button"
               className="admin-button admin-button--primary"
-              disabled={!projectUploadFile || busyAction !== null}
-              onClick={uploadAndUseProjectFile}
+              disabled={projectUploadFiles.length === 0 || busyAction !== null}
+              onClick={uploadAndUseProjectFiles}
             >
               {busyAction === "program-media-upload"
                 ? "Uploading…"
-                : "Upload and Use"}
+                : "Upload and Add"}
             </button>
           </div>
         </div>
@@ -1113,7 +1195,7 @@ function ProgramEditor({
           />
         </label>
         <div className="admin-field admin-field--full">
-          <span>Project video (optional)</span>
+          <span>Featured project video (optional)</span>
           <div
             className={`admin-media-picker ${
               selectedVideo ? "" : "admin-media-picker--empty"
@@ -1141,9 +1223,130 @@ function ProgramEditor({
             </select>
           </div>
           <small>
-            If selected, this video appears in the project detail section. The
-            main image is still used for project cards and as the video cover.
+            If selected, this video appears immediately after the main image.
+            Additional videos can be added in the gallery below.
           </small>
+        </div>
+        <div className="admin-field admin-field--full admin-gallery-manager">
+          <div className="admin-gallery-manager__heading">
+            <div>
+              <span>Project gallery</span>
+              <small>
+                Add multiple images and videos, change their order, or remove
+                them from this project.
+              </small>
+            </div>
+            <strong>
+              {gallery.length} {gallery.length === 1 ? "item" : "items"}
+            </strong>
+          </div>
+
+          <div className="admin-gallery-add">
+            <select
+              dir="auto"
+              value={gallerySelection}
+              onChange={(event) => setGallerySelection(event.target.value)}
+            >
+              <option value="">Choose from Media Library</option>
+              {availableGalleryMedia.map((item) => (
+                <option key={item.id} value={item.url}>
+                  {item.contentType.startsWith("video/") ? "Video" : "Image"}:{" "}
+                  {item.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="admin-button admin-button--secondary"
+              disabled={!gallerySelection || busyAction !== null}
+              onClick={addGalleryMedia}
+            >
+              Add to Gallery
+            </button>
+          </div>
+
+          {gallery.length > 0 ? (
+            <div className="admin-project-gallery">
+              {gallery.map((item, index) => {
+                const libraryItem = media.find(
+                  (mediaItem) => mediaItem.url === item.url,
+                );
+                return (
+                  <article className="admin-project-gallery__item" key={item.url}>
+                    <div className="admin-project-gallery__preview">
+                      {item.type === "video" ? (
+                        <>
+                          <video
+                            src={item.url}
+                            muted
+                            playsInline
+                            preload="metadata"
+                          />
+                          <b>Video</b>
+                        </>
+                      ) : (
+                        <img src={item.url} alt="" />
+                      )}
+                    </div>
+                    <div className="admin-project-gallery__body">
+                      <strong>
+                        {libraryItem?.name || `Gallery item ${index + 1}`}
+                      </strong>
+                      <label className="admin-field">
+                        <span>Media description</span>
+                        <input
+                          dir="auto"
+                          value={item.altText}
+                          onChange={(event) =>
+                            updateGalleryAlt(index, event.target.value)
+                          }
+                          placeholder="Describe what appears in this media"
+                        />
+                      </label>
+                      <div className="admin-project-gallery__actions">
+                        {item.type === "image" && (
+                          <button
+                            type="button"
+                            onClick={() => makeMainImage(index)}
+                          >
+                            Set as Main
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          aria-label="Move media earlier"
+                          disabled={index === 0}
+                          onClick={() => moveGalleryItem(index, -1)}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Move media later"
+                          disabled={index === gallery.length - 1}
+                          onClick={() => moveGalleryItem(index, 1)}
+                        >
+                          ↓
+                        </button>
+                        <button
+                          type="button"
+                          className="is-danger"
+                          onClick={() => removeGalleryItem(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="admin-gallery-empty">
+              No additional media yet. Upload files above or add existing media
+              from the library.
+            </p>
+          )}
         </div>
         <label className="admin-field admin-field--full">
           <span>Featured introduction</span>

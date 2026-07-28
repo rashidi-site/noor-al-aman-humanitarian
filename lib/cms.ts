@@ -5,6 +5,7 @@ import {
   programs as fallbackPrograms,
   type MediaItem,
   type Program,
+  type ProjectMedia,
 } from "@/app/site-data";
 
 type RuntimeEnv = {
@@ -21,6 +22,7 @@ type ProgramRow = {
   image: string;
   image_alt: string;
   video: string;
+  gallery_json: string;
   label: string;
   eyebrow: string;
   lead: string;
@@ -61,6 +63,7 @@ export type ProgramInput = {
   image?: string;
   imageAlt?: string;
   video?: string;
+  gallery?: ProjectMedia[];
   label?: string;
   eyebrow?: string;
   lead?: string;
@@ -126,6 +129,7 @@ async function initializeCms(): Promise<void> {
         image TEXT NOT NULL,
         image_alt TEXT NOT NULL,
         video TEXT NOT NULL DEFAULT '',
+        gallery_json TEXT NOT NULL DEFAULT '[]',
         label TEXT NOT NULL,
         eyebrow TEXT NOT NULL,
         lead TEXT NOT NULL,
@@ -172,10 +176,10 @@ async function initializeCms(): Promise<void> {
     return database
       .prepare(
         `INSERT OR IGNORE INTO programs (
-          id, slug, title, short_title, summary, image, image_alt, video, label,
-          eyebrow, lead, body, bullets_json, sort_order, is_published,
+          id, slug, title, short_title, summary, image, image_alt, video,
+          gallery_json, label, eyebrow, lead, body, bullets_json, sort_order, is_published,
           published_data, published_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, CURRENT_TIMESTAMP)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, CURRENT_TIMESTAMP)`,
       )
       .bind(
         program.id,
@@ -186,6 +190,7 @@ async function initializeCms(): Promise<void> {
         program.image,
         program.imageAlt,
         program.video,
+        JSON.stringify(program.gallery),
         program.label,
         program.eyebrow,
         program.lead,
@@ -212,6 +217,46 @@ async function initializeCms(): Promise<void> {
   if (contentSeeds.length > 0) {
     await database.batch(contentSeeds);
   }
+
+  for (const fallback of fallbackPrograms.filter(
+    (program) => program.gallery.length > 0,
+  )) {
+    const row = await database
+      .prepare(
+        "SELECT gallery_json, published_data FROM programs WHERE id = ?",
+      )
+      .bind(fallback.id)
+      .first<{ gallery_json: string; published_data: string | null }>();
+    if (!row) continue;
+
+    let publishedData = row.published_data;
+    let needsBackfill = !publishedData;
+
+    if (publishedData) {
+      try {
+        const snapshot = JSON.parse(publishedData) as Record<string, unknown>;
+        needsBackfill = !Object.hasOwn(snapshot, "gallery");
+        if (needsBackfill) {
+          snapshot.gallery = fallback.gallery;
+          publishedData = JSON.stringify(snapshot);
+        }
+      } catch {
+        needsBackfill = true;
+        publishedData = JSON.stringify(publicProgramSnapshot(fallback));
+      }
+    }
+
+    if (needsBackfill) {
+      await database
+        .prepare(
+          `UPDATE programs
+           SET gallery_json = ?, published_data = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
+        )
+        .bind(JSON.stringify(fallback.gallery), publishedData, fallback.id)
+        .run();
+    }
+  }
 }
 
 function parseBullets(value: string): string[] {
@@ -220,6 +265,29 @@ function parseBullets(value: string): string[] {
     return Array.isArray(parsed)
       ? parsed.filter((item): item is string => typeof item === "string")
       : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseGallery(value: string | undefined | null): ProjectMedia[] {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter(
+        (item): item is Record<string, unknown> =>
+          Boolean(item) && typeof item === "object",
+      )
+      .map((item) => ({
+        url: typeof item.url === "string" ? item.url : "",
+        type: item.type === "video" ? ("video" as const) : ("image" as const),
+        altText: typeof item.altText === "string" ? item.altText : "",
+      }))
+      .filter((item) => item.url);
   } catch {
     return [];
   }
@@ -235,6 +303,7 @@ function publicProgramSnapshot(program: Program): Program {
     image: program.image,
     imageAlt: program.imageAlt,
     video: program.video,
+    gallery: program.gallery,
     label: program.label,
     eyebrow: program.eyebrow,
     lead: program.lead,
@@ -254,6 +323,7 @@ function rowToDraftProgram(row: ProgramRow): Program {
     image: row.image,
     imageAlt: row.image_alt,
     video: row.video ?? "",
+    gallery: parseGallery(row.gallery_json),
     label: row.label,
     eyebrow: row.eyebrow,
     lead: row.lead,
@@ -282,6 +352,7 @@ function rowToPublishedProgram(row: ProgramRow): Program | null {
     return {
       ...snapshot,
       video: typeof snapshot.video === "string" ? snapshot.video : "",
+      gallery: Array.isArray(snapshot.gallery) ? snapshot.gallery : [],
     };
   } catch {
     return null;
@@ -345,6 +416,29 @@ function normalizeBullets(value: ProgramInput["bullets"]): string[] {
     .slice(0, 8);
 }
 
+function normalizeGallery(value: ProgramInput["gallery"]): ProjectMedia[] {
+  if (!Array.isArray(value)) return [];
+
+  const seen = new Set<string>();
+  const gallery: ProjectMedia[] = [];
+
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const url = cleanText(item.url, 500);
+    if (!url || seen.has(url)) continue;
+
+    seen.add(url);
+    gallery.push({
+      url,
+      type: item.type === "video" ? "video" : "image",
+      altText: cleanText(item.altText, 250) || "Project field media",
+    });
+    if (gallery.length >= 24) break;
+  }
+
+  return gallery;
+}
+
 function normalizeProgramInput(input: ProgramInput, existingId?: string): Program {
   const title = cleanText(input.title, 120);
   const shortTitle = cleanText(input.shortTitle, 70) || title;
@@ -367,6 +461,7 @@ function normalizeProgramInput(input: ProgramInput, existingId?: string): Progra
     image,
     imageAlt: cleanText(input.imageAlt, 250) || title,
     video: cleanText(input.video, 500),
+    gallery: normalizeGallery(input.gallery),
     label: cleanText(input.label, 70) || shortTitle,
     eyebrow: cleanText(input.eyebrow, 100) || shortTitle,
     lead: cleanText(input.lead, 700),
@@ -398,8 +493,8 @@ export async function saveProgram(
         .prepare(
           `UPDATE programs SET
             slug = ?, title = ?, short_title = ?, summary = ?, image = ?,
-            image_alt = ?, video = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
-            bullets_json = ?, sort_order = ?, is_published = 1,
+            image_alt = ?, video = ?, gallery_json = ?, label = ?, eyebrow = ?,
+            lead = ?, body = ?, bullets_json = ?, sort_order = ?, is_published = 1,
             published_data = ?, published_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
           WHERE id = ?`,
@@ -412,6 +507,7 @@ export async function saveProgram(
           program.image,
           program.imageAlt,
           program.video,
+          JSON.stringify(program.gallery),
           program.label,
           program.eyebrow,
           program.lead,
@@ -427,8 +523,8 @@ export async function saveProgram(
         .prepare(
           `UPDATE programs SET
             slug = ?, title = ?, short_title = ?, summary = ?, image = ?,
-            image_alt = ?, video = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
-            bullets_json = ?, sort_order = ?, is_published = 0,
+            image_alt = ?, video = ?, gallery_json = ?, label = ?, eyebrow = ?,
+            lead = ?, body = ?, bullets_json = ?, sort_order = ?, is_published = 0,
             updated_at = CURRENT_TIMESTAMP
           WHERE id = ?`,
         )
@@ -440,6 +536,7 @@ export async function saveProgram(
           program.image,
           program.imageAlt,
           program.video,
+          JSON.stringify(program.gallery),
           program.label,
           program.eyebrow,
           program.lead,
@@ -454,8 +551,9 @@ export async function saveProgram(
         .prepare(
           `UPDATE programs SET
             slug = ?, title = ?, short_title = ?, summary = ?, image = ?,
-            image_alt = ?, video = ?, label = ?, eyebrow = ?, lead = ?, body = ?,
-            bullets_json = ?, sort_order = ?, updated_at = CURRENT_TIMESTAMP
+            image_alt = ?, video = ?, gallery_json = ?, label = ?, eyebrow = ?,
+            lead = ?, body = ?, bullets_json = ?, sort_order = ?,
+            updated_at = CURRENT_TIMESTAMP
           WHERE id = ?`,
         )
         .bind(
@@ -466,6 +564,7 @@ export async function saveProgram(
           program.image,
           program.imageAlt,
           program.video,
+          JSON.stringify(program.gallery),
           program.label,
           program.eyebrow,
           program.lead,
@@ -480,10 +579,10 @@ export async function saveProgram(
     await database
       .prepare(
         `INSERT INTO programs (
-          id, slug, title, short_title, summary, image, image_alt, video, label,
-          eyebrow, lead, body, bullets_json, sort_order, is_published,
+          id, slug, title, short_title, summary, image, image_alt, video,
+          gallery_json, label, eyebrow, lead, body, bullets_json, sort_order, is_published,
           published_data, published_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         program.id,
@@ -494,6 +593,7 @@ export async function saveProgram(
         program.image,
         program.imageAlt,
         program.video,
+        JSON.stringify(program.gallery),
         program.label,
         program.eyebrow,
         program.lead,
@@ -691,14 +791,17 @@ export async function deleteMediaRecord(id: string): Promise<void> {
   const programReference = await database
     .prepare(
       `SELECT id FROM programs
-       WHERE image = ? OR video = ? OR published_data LIKE ? OR published_data LIKE ?
+       WHERE image = ? OR video = ? OR gallery_json LIKE ?
+          OR published_data LIKE ? OR published_data LIKE ? OR published_data LIKE ?
        LIMIT 1`,
     )
     .bind(
       url,
       url,
+      `%"url":"${url}"%`,
       `%"image":"${url}"%`,
       `%"video":"${url}"%`,
+      `%"url":"${url}"%`,
     )
     .first<{ id: string }>();
   const contentReference = await database

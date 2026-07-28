@@ -1,3 +1,9 @@
+export type ProjectMedia = {
+  url: string;
+  type: "image" | "video";
+  altText: string;
+};
+
 export type Program = {
   id: string;
   slug: string;
@@ -7,6 +13,7 @@ export type Program = {
   image: string;
   imageAlt: string;
   video: string;
+  gallery: ProjectMedia[];
   label: string;
   eyebrow: string;
   lead: string;
@@ -31,6 +38,28 @@ export const programs: Program[] = [
     image: "/media/shelter-complete.webp",
     imageAlt: "A completed bamboo shelter",
     video: "",
+    gallery: [
+      {
+        url: "/media/shelter-progress.webp",
+        type: "image",
+        altText: "A bamboo shelter under construction",
+      },
+      {
+        url: "/media/shelter-before.webp",
+        type: "image",
+        altText: "A fragile shelter before rebuilding",
+      },
+      {
+        url: "/media/shelter-interior.webp",
+        type: "image",
+        altText: "Interior of a completed bamboo shelter",
+      },
+      {
+        url: "/media/shelter-complete.mp4",
+        type: "video",
+        altText: "Field video of a completed bamboo shelter",
+      },
+    ],
     label: "Safer homes",
     eyebrow: "Safer homes",
     lead:
@@ -54,6 +83,7 @@ export const programs: Program[] = [
     image: "/media/widow-support.webp",
     imageAlt: "A woman receiving a household support package",
     video: "",
+    gallery: [],
     label: "Essential assistance",
     eyebrow: "Essential assistance",
     lead:
@@ -77,6 +107,7 @@ export const programs: Program[] = [
     image: "/media/medical-support.webp",
     imageAlt: "Both feet of a patient wrapped in medical bandages",
     video: "",
+    gallery: [],
     label: "Urgent care",
     eyebrow: "Urgent care",
     lead:
@@ -100,6 +131,7 @@ export const programs: Program[] = [
     image: "/media/clean-water.webp",
     imageAlt: "Children washing their hands with water from a community hand pump",
     video: "",
+    gallery: [],
     label: "Safe water",
     eyebrow: "Safe water",
     lead:
@@ -123,6 +155,7 @@ export const programs: Program[] = [
     image: "/media/education-support.webp",
     imageAlt: "Children studying together in a community classroom",
     video: "",
+    gallery: [],
     label: "Learning",
     eyebrow: "Learning",
     lead:
@@ -146,6 +179,7 @@ export const programs: Program[] = [
     image: "/media/food-assistance.webp",
     imageAlt: "Essential food supplies prepared for distribution",
     video: "",
+    gallery: [],
     label: "Essential food",
     eyebrow: "Essential food",
     lead:
@@ -169,6 +203,7 @@ export const programs: Program[] = [
     image: "/media/qurbani-distribution.webp",
     imageAlt: "Packaged Qurbani meat portions prepared for distribution",
     video: "",
+    gallery: [],
     label: "Seasonal support",
     eyebrow: "Seasonal support",
     lead:
@@ -193,6 +228,20 @@ export const programs: Program[] = [
     imageAlt:
       "Rice, cooking oil, milk, dates, and other Ramadan food supplies prepared for distribution",
     video: "",
+    gallery: [
+      {
+        url: "/media/ramadan-iftar-supplies.webp",
+        type: "image",
+        altText:
+          "Rice, sugar, cooking oil, milk powder, dates, and other Ramadan supplies arranged before packing",
+      },
+      {
+        url: "/media/ramadan-iftar-packages.webp",
+        type: "image",
+        altText:
+          "Prepared Ramadan food packages ready for distribution to families",
+      },
+    ],
     label: "Ramadan support",
     eyebrow: "Ramadan support",
     lead:
@@ -318,6 +367,27 @@ export const originalMedia: MediaItem[] = [
     size: 0,
     altText:
       "Ramadan food supplies including rice, oil, milk, and dates prepared for distribution",
+    createdAt: "2026-07-28T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-ramadan-iftar-supplies",
+    name: "Ramadan Iftar supplies",
+    url: "/media/ramadan-iftar-supplies.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText:
+      "Rice, sugar, cooking oil, milk powder, dates, and other Ramadan supplies arranged before packing",
+    createdAt: "2026-07-28T00:00:00.000Z",
+    isProtected: true,
+  },
+  {
+    id: "original-ramadan-iftar-packages",
+    name: "Ramadan food packages",
+    url: "/media/ramadan-iftar-packages.webp",
+    contentType: "image/webp",
+    size: 0,
+    altText: "Prepared Ramadan food packages ready for distribution to families",
     createdAt: "2026-07-28T00:00:00.000Z",
     isProtected: true,
   },

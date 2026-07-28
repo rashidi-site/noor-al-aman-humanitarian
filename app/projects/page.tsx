@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "../components/PageHero";
+import ProjectMediaGallery from "../components/ProjectMediaGallery";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 import { getPublishedPrograms, getPublishedSiteContent } from "@/lib/cms";
@@ -40,31 +41,6 @@ function ProjectCopy({
   );
 }
 
-function ProjectMedia({ program }: { program: Program }) {
-  return (
-    <div
-      className={`project-detail__media ${
-        program.video ? "project-detail__media--video" : ""
-      }`}
-    >
-      {program.video ? (
-        <video
-          controls
-          playsInline
-          preload="metadata"
-          poster={program.image}
-          aria-label={`${program.title} project video`}
-        >
-          <source src={program.video} />
-        </video>
-      ) : (
-        <img src={program.image} alt={program.imageAlt} />
-      )}
-      <span>{program.label}</span>
-    </div>
-  );
-}
-
 export default async function ProjectsPage() {
   const [programs, content] = await Promise.all([
     getPublishedPrograms(),
@@ -96,13 +72,13 @@ export default async function ProjectsPage() {
               >
                 {reverse ? (
                   <>
-                    <ProjectMedia program={program} />
+                    <ProjectMediaGallery program={program} />
                     <ProjectCopy program={program} number={index + 1} />
                   </>
                 ) : (
                   <>
                     <ProjectCopy program={program} number={index + 1} />
-                    <ProjectMedia program={program} />
+                    <ProjectMediaGallery program={program} />
                   </>
                 )}
               </div>
