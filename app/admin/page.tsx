@@ -12,17 +12,17 @@ export default async function AdminPage() {
 
   if (!user) {
     return (
-      <main className="admin-access" dir="rtl">
+      <main className="admin-access" dir="ltr">
         <div className="admin-access__card">
           <img src="/media/noor-al-aman-mark.webp" alt="" />
           <p className="admin-kicker">Noor Al-Aman Humanitarian</p>
-          <h1>رسائی دستیاب نہیں</h1>
+          <h1>Access unavailable</h1>
           <p>
-            یہ Admin Dashboard صرف ویب سائٹ کے مالک کے ChatGPT اکاؤنٹ کے لیے
-            محفوظ ہے۔
+            This Admin Dashboard is protected and can only be accessed through
+            the website owner&apos;s authorised ChatGPT account.
           </p>
           <Link className="admin-button admin-button--primary" href="/">
-            ویب سائٹ پر واپس جائیں
+            Return to website
           </Link>
         </div>
       </main>

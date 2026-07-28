@@ -26,10 +26,10 @@ const navigation: Array<{
   hint: string;
   icon: string;
 }> = [
-  { id: "overview", label: "جائزہ", hint: "Overview", icon: "⌂" },
-  { id: "programs", label: "منصوبے", hint: "Projects", icon: "▦" },
-  { id: "content", label: "ویب صفحات", hint: "Pages", icon: "✎" },
-  { id: "media", label: "میڈیا", hint: "Images & videos", icon: "▣" },
+  { id: "overview", label: "Overview", hint: "Dashboard summary", icon: "⌂" },
+  { id: "programs", label: "Projects", hint: "Manage programmes", icon: "▦" },
+  { id: "content", label: "Website Pages", hint: "Edit page content", icon: "✎" },
+  { id: "media", label: "Media", hint: "Images and videos", icon: "▣" },
 ];
 
 function newProgramTemplate(programs: Program[], media: MediaItem[]): Program {
@@ -59,7 +59,7 @@ function newProgramTemplate(programs: Program[], media: MediaItem[]): Program {
 }
 
 function humanFileSize(bytes: number): string {
-  if (!bytes) return "اصل فائل";
+  if (!bytes) return "Original file";
   if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
@@ -67,7 +67,7 @@ function humanFileSize(bytes: number): string {
 async function readJsonResponse<T>(response: Response): Promise<T> {
   const data = (await response.json()) as T & { error?: string };
   if (!response.ok) {
-    throw new Error(data.error || "درخواست مکمل نہیں ہو سکی۔");
+    throw new Error(data.error || "The request could not be completed.");
   }
   return data;
 }
@@ -179,15 +179,15 @@ export default function AdminDashboard({
       showNotice(
         "success",
         action === "publish"
-          ? "منصوبہ شائع ہو گیا ہے اور اب لائیو ویب سائٹ پر موجود ہے۔"
+          ? "The project has been published and is now visible on the live website."
           : action === "unpublish"
-            ? "منصوبہ لائیو ویب سائٹ سے ہٹا دیا گیا ہے؛ Draft محفوظ ہے۔"
-            : "Draft محفوظ ہو گیا ہے۔ لائیو ویب سائٹ ابھی تبدیل نہیں ہوئی۔",
+            ? "The project has been removed from the live website. Its draft is still saved."
+            : "Draft saved. The live website has not changed.",
       );
     } catch (error) {
       showNotice(
         "error",
-        error instanceof Error ? error.message : "منصوبہ محفوظ نہیں ہو سکا۔",
+        error instanceof Error ? error.message : "The project could not be saved.",
       );
     } finally {
       setBusyAction(null);
@@ -197,7 +197,7 @@ export default function AdminDashboard({
   async function removeProgram() {
     if (!programDraft?.id) return;
     const confirmed = window.confirm(
-      `کیا آپ واقعی “${programDraft.title}” کو مکمل طور پر حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہوگا۔`,
+      `Permanently delete “${programDraft.title}”? This action cannot be undone.`,
     );
     if (!confirmed) return;
 
@@ -212,11 +212,11 @@ export default function AdminDashboard({
         current.filter((item) => item.id !== programDraft.id),
       );
       setProgramDraft(null);
-      showNotice("success", "منصوبہ حذف کر دیا گیا ہے۔");
+      showNotice("success", "The project has been deleted.");
     } catch (error) {
       showNotice(
         "error",
-        error instanceof Error ? error.message : "منصوبہ حذف نہیں ہو سکا۔",
+        error instanceof Error ? error.message : "The project could not be deleted.",
       );
     } finally {
       setBusyAction(null);
@@ -246,13 +246,13 @@ export default function AdminDashboard({
       showNotice(
         "success",
         publish
-          ? "تمام صفحاتی تبدیلیاں شائع ہو گئی ہیں۔"
-          : "صفحے کا Draft محفوظ ہو گیا ہے؛ لائیو ویب سائٹ ابھی تبدیل نہیں ہوئی۔",
+          ? "All website page changes have been published."
+          : "Page draft saved. The live website has not changed.",
       );
     } catch (error) {
       showNotice(
         "error",
-        error instanceof Error ? error.message : "مواد محفوظ نہیں ہو سکا۔",
+        error instanceof Error ? error.message : "The website content could not be saved.",
       );
     } finally {
       setBusyAction(null);
@@ -269,7 +269,7 @@ export default function AdminDashboard({
 
   async function uploadMedia() {
     if (!uploadFile) {
-      showNotice("error", "پہلے تصویر یا ویڈیو منتخب کریں۔");
+      showNotice("error", "Select an image or video first.");
       return;
     }
 
@@ -290,12 +290,12 @@ export default function AdminDashboard({
       setUploadKey((current) => current + 1);
       showNotice(
         "success",
-        "میڈیا اپلوڈ ہو گیا ہے۔ اب اسے کسی منصوبے یا صفحے میں منتخب کریں۔",
+        "Media uploaded. You can now select it for a project or website page.",
       );
     } catch (error) {
       showNotice(
         "error",
-        error instanceof Error ? error.message : "فائل اپلوڈ نہیں ہو سکی۔",
+        error instanceof Error ? error.message : "The file could not be uploaded.",
       );
     } finally {
       setBusyAction(null);
@@ -305,7 +305,7 @@ export default function AdminDashboard({
   async function removeMedia(item: MediaItem) {
     if (item.isProtected) return;
     const confirmed = window.confirm(
-      `کیا آپ واقعی “${item.name}” کو مستقل حذف کرنا چاہتے ہیں؟`,
+      `Permanently delete “${item.name}”?`,
     );
     if (!confirmed) return;
 
@@ -317,11 +317,11 @@ export default function AdminDashboard({
       );
       await readJsonResponse<{ deleted: boolean }>(response);
       setMedia((current) => current.filter((mediaItem) => mediaItem.id !== item.id));
-      showNotice("success", "فائل حذف کر دی گئی ہے۔");
+      showNotice("success", "The file has been deleted.");
     } catch (error) {
       showNotice(
         "error",
-        error instanceof Error ? error.message : "فائل حذف نہیں ہو سکی۔",
+        error instanceof Error ? error.message : "The file could not be deleted.",
       );
     } finally {
       setBusyAction(null);
@@ -329,7 +329,7 @@ export default function AdminDashboard({
   }
 
   return (
-    <div className="admin-shell" dir="rtl">
+    <div className="admin-shell" dir="ltr">
       <aside className={`admin-sidebar ${sidebarOpen ? "is-open" : ""}`}>
         <div className="admin-brand">
           <img src="/media/noor-al-aman-mark.webp" alt="" />
@@ -358,7 +358,7 @@ export default function AdminDashboard({
         </nav>
         <div className="admin-sidebar__bottom">
           <a href="/" target="_blank" rel="noreferrer">
-            لائیو ویب سائٹ دیکھیں ↗
+            View live website ↗
           </a>
           <a href={signOutPath}>Sign out</a>
         </div>
@@ -368,7 +368,7 @@ export default function AdminDashboard({
         <button
           className="admin-backdrop"
           type="button"
-          aria-label="مینو بند کریں"
+          aria-label="Close menu"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -378,7 +378,7 @@ export default function AdminDashboard({
           <button
             className="admin-menu-button"
             type="button"
-            aria-label="مینو کھولیں"
+            aria-label="Open menu"
             onClick={() => setSidebarOpen(true)}
           >
             <span />
@@ -395,7 +395,7 @@ export default function AdminDashboard({
             </span>
           </div>
           <div className="admin-security">
-            <span aria-hidden="true">●</span> صرف آپ
+            <span aria-hidden="true">●</span> Owner only
           </div>
         </header>
 
@@ -417,8 +417,8 @@ export default function AdminDashboard({
             <section>
               <PageHeading
                 kicker="Admin Dashboard"
-                title="خوش آمدید"
-                description="یہاں سے آپ بغیر کوڈنگ کے پوری ویب سائٹ، منصوبے، تصاویر اور ویڈیوز سنبھال سکتے ہیں۔"
+                title="Welcome"
+                description="Manage your entire website, projects, images, and videos here without writing any code."
               />
 
               <div className="admin-stats">
@@ -426,21 +426,21 @@ export default function AdminDashboard({
                   <span className="admin-stat-icon admin-stat-icon--green">✓</span>
                   <div>
                     <strong>{publishedCount}</strong>
-                    <p>لائیو منصوبے</p>
+                    <p>Live projects</p>
                   </div>
                 </article>
                 <article>
                   <span className="admin-stat-icon admin-stat-icon--gold">✎</span>
                   <div>
                     <strong>{draftCount}</strong>
-                    <p>Draft یا نئی تبدیلی</p>
+                    <p>Drafts or new changes</p>
                   </div>
                 </article>
                 <article>
                   <span className="admin-stat-icon admin-stat-icon--blue">▣</span>
                   <div>
                     <strong>{uploadedCount}</strong>
-                    <p>آپ کی اپلوڈ فائلیں</p>
+                    <p>Your uploaded files</p>
                   </div>
                 </article>
               </div>
@@ -449,36 +449,36 @@ export default function AdminDashboard({
                 <article className="admin-panel admin-quick-panel">
                   <div className="admin-panel__heading">
                     <div>
-                      <p className="admin-kicker">فوری کام</p>
-                      <h2>آپ کیا کرنا چاہتے ہیں؟</h2>
+                      <p className="admin-kicker">Quick actions</p>
+                      <h2>What would you like to do?</h2>
                     </div>
                   </div>
                   <div className="admin-quick-actions">
                     <button type="button" onClick={startNewProgram}>
                       <span>＋</span>
-                      <strong>نیا منصوبہ شامل کریں</strong>
-                      <small>پہلے Draft بنے گا</small>
+                      <strong>Add a new project</strong>
+                      <small>It starts as a draft</small>
                     </button>
                     <button type="button" onClick={() => chooseTab("media")}>
                       <span>⇧</span>
-                      <strong>تصویر یا ویڈیو اپلوڈ کریں</strong>
-                      <small>فون سے بھی آسانی سے</small>
+                      <strong>Upload an image or video</strong>
+                      <small>Works easily from your phone</small>
                     </button>
                     <button type="button" onClick={() => chooseTab("content")}>
                       <span>✎</span>
-                      <strong>صفحے کی عبارت بدلیں</strong>
-                      <small>Home, About, Contact وغیرہ</small>
+                      <strong>Edit website content</strong>
+                      <small>Home, About, Contact, and more</small>
                     </button>
                   </div>
                 </article>
 
                 <article className="admin-panel admin-publish-panel">
                   <span className="admin-publish-panel__mark">✓</span>
-                  <p className="admin-kicker">محفوظ اشاعت</p>
-                  <h2>Draft پہلے، Publish بعد میں</h2>
+                  <p className="admin-kicker">Safe publishing</p>
+                  <h2>Draft first, publish when ready</h2>
                   <p>
-                    آپ کی محفوظ کی گئی Draft تبدیلیاں عوام کو نظر نہیں آئیں
-                    گی۔ جب سب کچھ درست ہو تو Publish دبائیں۔
+                    Saved draft changes remain private. Publish only when
+                    everything is ready for the live website.
                   </p>
                   <div className="admin-status-line">
                     <span
@@ -487,8 +487,8 @@ export default function AdminDashboard({
                       }
                     />
                     {contentHasChanges
-                      ? "صفحاتی Draft اشاعت کے لیے تیار ہے"
-                      : "تمام صفحاتی تبدیلیاں شائع شدہ ہیں"}
+                      ? "A page draft is ready to publish"
+                      : "All page changes are published"}
                   </div>
                 </article>
               </div>
@@ -496,11 +496,12 @@ export default function AdminDashboard({
               <article className="admin-panel admin-safety-panel">
                 <div className="admin-safety-panel__icon">⌾</div>
                 <div>
-                  <h2>تصاویر کے انتخاب میں وقار اور رازداری</h2>
+                  <h2>Protect dignity and privacy in every image</h2>
                   <p>
-                    حقیقی فیلڈ تصاویر استعمال کریں، مگر شناخت، بچوں کی رازداری
-                    اور طبی یا قربانی کی گرافک تصاویر سے متعلق احتیاط جاری رکھیں۔
-                    موجودہ منتخب Qurbani تصویر تقسیم کے لیے تیار پیکٹس دکھاتی ہے۔
+                    Use authentic field images while protecting identities and
+                    children&apos;s privacy. Avoid graphic medical or Qurbani
+                    imagery. The selected Qurbani image shows packaged portions
+                    prepared for distribution.
                   </p>
                 </div>
               </article>
@@ -511,15 +512,15 @@ export default function AdminDashboard({
             <section>
               <PageHeading
                 kicker="Projects"
-                title="منصوبے سنبھالیں"
-                description="منصوبہ شامل کریں، ترمیم کریں، Draft محفوظ کریں اور تیار ہونے پر Publish کریں۔"
+                title="Manage Projects"
+                description="Add or edit a project, save it as a draft, and publish it when it is ready."
                 action={
                   <button
                     type="button"
                     className="admin-button admin-button--primary"
                     onClick={startNewProgram}
                   >
-                    ＋ نیا منصوبہ
+                    ＋ New Project
                   </button>
                 }
               />
@@ -542,13 +543,13 @@ export default function AdminDashboard({
                           <StatusBadge program={program} />
                         </small>
                       </span>
-                      <b aria-hidden="true">‹</b>
+                      <b aria-hidden="true">›</b>
                     </button>
                   ))}
                   {programs.length === 0 && (
                     <div className="admin-empty">
                       <span>▦</span>
-                      <p>ابھی کوئی منصوبہ موجود نہیں۔</p>
+                      <p>No projects have been added yet.</p>
                     </div>
                   )}
                 </div>
@@ -567,16 +568,16 @@ export default function AdminDashboard({
                   ) : (
                     <div className="admin-editor-placeholder">
                       <span>✎</span>
-                      <h2>ترمیم کے لیے منصوبہ منتخب کریں</h2>
+                      <h2>Select a project to edit</h2>
                       <p>
-                        بائیں فہرست سے منصوبہ منتخب کریں یا نیا منصوبہ شامل کریں۔
+                        Choose a project from the list or create a new one.
                       </p>
                       <button
                         type="button"
                         className="admin-button admin-button--primary"
                         onClick={startNewProgram}
                       >
-                        نیا منصوبہ
+                        New Project
                       </button>
                     </div>
                   )}
@@ -589,8 +590,8 @@ export default function AdminDashboard({
             <section>
               <PageHeading
                 kicker="Website pages"
-                title="ویب صفحات کی ترمیم"
-                description="تمام عبارت اور نمایاں تصاویر یہاں سے بدلیں۔ Draft محفوظ ہونے کے بعد الگ سے Publish کریں۔"
+                title="Edit Website Pages"
+                description="Update text and featured media here. Save a draft first, then publish it separately."
                 action={
                   <div className="admin-heading-actions">
                     <button
@@ -600,8 +601,8 @@ export default function AdminDashboard({
                       onClick={() => saveContent(false)}
                     >
                       {busyAction === "content-draft"
-                        ? "محفوظ ہو رہا ہے…"
-                        : "Draft محفوظ کریں"}
+                        ? "Saving…"
+                        : "Save Draft"}
                     </button>
                     <button
                       type="button"
@@ -610,8 +611,8 @@ export default function AdminDashboard({
                       onClick={() => saveContent(true)}
                     >
                       {busyAction === "content-publish"
-                        ? "شائع ہو رہا ہے…"
-                        : "Publish کریں"}
+                        ? "Publishing…"
+                        : "Publish"}
                     </button>
                   </div>
                 }
@@ -624,8 +625,8 @@ export default function AdminDashboard({
                   }
                 />
                 {contentHasChanges
-                  ? "Draft میں ایسی تبدیلیاں ہیں جو ابھی شائع نہیں ہوئیں۔"
-                  : "Draft اور لائیو ویب سائٹ ایک جیسی ہیں۔"}
+                  ? "The draft contains changes that have not been published."
+                  : "The draft matches the live website."}
               </div>
 
               <div className="admin-page-tabs" role="tablist">
@@ -645,7 +646,7 @@ export default function AdminDashboard({
 
               <div className="admin-page-intro">
                 <div>
-                  <p className="admin-kicker">موجودہ صفحہ</p>
+                  <p className="admin-kicker">Current page</p>
                   <h2>{selectedPage.title}</h2>
                 </div>
                 <p>{selectedPage.description}</p>
@@ -678,8 +679,8 @@ export default function AdminDashboard({
               <div className="admin-sticky-actions">
                 <span>
                   {contentHasChanges
-                    ? "غیر شائع شدہ تبدیلیاں موجود ہیں"
-                    : "تمام تبدیلیاں شائع شدہ ہیں"}
+                    ? "Unpublished changes are ready"
+                    : "All changes are published"}
                 </span>
                 <button
                   type="button"
@@ -687,7 +688,7 @@ export default function AdminDashboard({
                   disabled={busyAction !== null}
                   onClick={() => saveContent(false)}
                 >
-                  Draft محفوظ کریں
+                  Save Draft
                 </button>
                 <button
                   type="button"
@@ -695,7 +696,7 @@ export default function AdminDashboard({
                   disabled={busyAction !== null}
                   onClick={() => saveContent(true)}
                 >
-                  Publish کریں
+                  Publish
                 </button>
               </div>
             </section>
@@ -705,17 +706,17 @@ export default function AdminDashboard({
             <section>
               <PageHeading
                 kicker="Media library"
-                title="تصاویر اور ویڈیوز"
-                description="فون یا کمپیوٹر سے اصل فائل اپلوڈ کریں، پھر اسے کسی منصوبے یا ویب صفحے میں منتخب کریں۔"
+                title="Images and Videos"
+                description="Upload original files from your phone or computer, then select them for a project or website page."
               />
 
               <article className="admin-panel admin-upload-panel">
                 <div className="admin-upload-icon">⇧</div>
                 <div className="admin-upload-copy">
-                  <h2>نئی فائل اپلوڈ کریں</h2>
+                  <h2>Upload a New File</h2>
                   <p>
-                    تصاویر: JPG, PNG, WebP, AVIF یا GIF (25 MB تک) — ویڈیو:
-                    MP4 یا WebM (80 MB تک)
+                    Images: JPG, PNG, WebP, AVIF, or GIF up to 25 MB. Videos:
+                    MP4 or WebM up to 80 MB.
                   </p>
                   <div className="admin-upload-fields">
                     <label className="admin-file-input">
@@ -726,16 +727,16 @@ export default function AdminDashboard({
                         onChange={onFileChosen}
                       />
                       <span>
-                        {uploadFile ? uploadFile.name : "فائل منتخب کریں"}
+                        {uploadFile ? uploadFile.name : "Choose a file"}
                       </span>
                     </label>
                     <label className="admin-field">
-                      <span>تصویر/ویڈیو کی وضاحت</span>
+                      <span>Image or video description</span>
                       <input
                         dir="auto"
                         value={uploadAlt}
                         onChange={(event) => setUploadAlt(event.target.value)}
-                        placeholder="مثلاً: Family receiving food assistance"
+                        placeholder="Example: Family receiving food assistance"
                       />
                     </label>
                     <button
@@ -745,8 +746,8 @@ export default function AdminDashboard({
                       onClick={uploadMedia}
                     >
                       {busyAction === "media-upload"
-                        ? "اپلوڈ ہو رہا ہے…"
-                        : "اپلوڈ کریں"}
+                        ? "Uploading…"
+                        : "Upload"}
                     </button>
                   </div>
                 </div>
@@ -755,11 +756,11 @@ export default function AdminDashboard({
               <div className="admin-media-heading">
                 <div>
                   <p className="admin-kicker">Media library</p>
-                  <h2>{media.length} فائلیں</h2>
+                  <h2>{media.length} files</h2>
                 </div>
                 <p>
-                  اصل منتخب فائلیں محفوظ ہیں؛ آپ کی نئی اپلوڈ فائلیں حذف کی جا
-                  سکتی ہیں۔
+                  Curated original files are protected. Files you upload can be
+                  deleted when they are no longer in use.
                 </p>
               </div>
 
@@ -774,17 +775,17 @@ export default function AdminDashboard({
                       )}
                       <span>
                         {item.contentType.startsWith("image/")
-                          ? "تصویر"
-                          : "ویڈیو"}
+                          ? "Image"
+                          : "Video"}
                       </span>
                     </div>
                     <div className="admin-media-card__body">
                       <strong title={item.name}>{item.name}</strong>
-                      <p title={item.altText}>{item.altText || "کوئی وضاحت نہیں"}</p>
+                      <p title={item.altText}>{item.altText || "No description"}</p>
                       <div>
                         <small>{humanFileSize(item.size)}</small>
                         {item.isProtected ? (
-                          <span className="admin-protected">محفوظ اصل</span>
+                          <span className="admin-protected">Protected original</span>
                         ) : (
                           <button
                             type="button"
@@ -792,8 +793,8 @@ export default function AdminDashboard({
                             onClick={() => removeMedia(item)}
                           >
                             {busyAction === `media-delete-${item.id}`
-                              ? "حذف…"
-                              : "حذف کریں"}
+                              ? "Deleting…"
+                              : "Delete"}
                           </button>
                         )}
                       </div>
@@ -869,20 +870,20 @@ function ProgramEditor({
       <div className="admin-panel__heading">
         <div>
           <p className="admin-kicker">
-            {program.id ? "منصوبہ ترمیم کریں" : "نیا منصوبہ"}
+            {program.id ? "Edit project" : "New project"}
           </p>
-          <h2>{program.title || "نیا منصوبہ"}</h2>
+          <h2>{program.title || "New project"}</h2>
           <div className="admin-editor-status">
             <StatusBadge program={program} />
             {program.hasUnpublishedChanges && program.isPublished && (
-              <span>Draft تبدیلیاں ابھی لائیو نہیں ہیں</span>
+              <span>Draft changes are not live yet</span>
             )}
           </div>
         </div>
         <button
           className="admin-close-button"
           type="button"
-          aria-label="ایڈیٹر بند کریں"
+          aria-label="Close editor"
           onClick={onClose}
         >
           ×
@@ -891,35 +892,35 @@ function ProgramEditor({
 
       <div className="admin-form-grid">
         <label className="admin-field">
-          <span>منصوبے کا مکمل عنوان *</span>
+          <span>Full project title *</span>
           <input
             dir="auto"
             value={program.title}
             onChange={(event) => onChange("title", event.target.value)}
-            placeholder="مثلاً: Emergency Food Assistance"
+            placeholder="Example: Emergency Food Assistance"
           />
         </label>
         <label className="admin-field">
-          <span>مختصر عنوان</span>
+          <span>Short title</span>
           <input
             dir="auto"
             value={program.shortTitle}
             onChange={(event) => onChange("shortTitle", event.target.value)}
-            placeholder="مثلاً: Food support"
+            placeholder="Example: Food support"
           />
         </label>
         <label className="admin-field">
-          <span>URL نام</span>
+          <span>URL slug</span>
           <input
             dir="ltr"
             value={program.slug}
             onChange={(event) => onChange("slug", event.target.value)}
-            placeholder="خالی چھوڑیں تو خود بن جائے گا"
+            placeholder="Leave blank to generate automatically"
           />
-          <small>مثال: clean-water — بعد میں بدلنے سے پرانا لنک بدل سکتا ہے۔</small>
+          <small>Example: clean-water. Changing it later will also change the project link.</small>
         </label>
         <label className="admin-field">
-          <span>ترتیب نمبر</span>
+          <span>Display order</span>
           <input
             dir="ltr"
             type="number"
@@ -930,10 +931,10 @@ function ProgramEditor({
               onChange("sortOrder", Number(event.target.value))
             }
           />
-          <small>کم نمبر والا منصوبہ پہلے دکھائی دے گا۔</small>
+          <small>Projects with lower numbers appear first.</small>
         </label>
         <label className="admin-field admin-field--full">
-          <span>کارڈ کی مختصر تفصیل</span>
+          <span>Short card description</span>
           <textarea
             dir="auto"
             rows={3}
@@ -942,16 +943,16 @@ function ProgramEditor({
           />
         </label>
         <label className="admin-field">
-          <span>تصویر پر چھوٹا لیبل</span>
+          <span>Image label</span>
           <input
             dir="auto"
             value={program.label}
             onChange={(event) => onChange("label", event.target.value)}
-            placeholder="مثلاً: Urgent care"
+            placeholder="Example: Urgent care"
           />
         </label>
         <label className="admin-field">
-          <span>تفصیلی حصے کی چھوٹی سرخی</span>
+          <span>Detail section eyebrow</span>
           <input
             dir="auto"
             value={program.eyebrow}
@@ -959,7 +960,7 @@ function ProgramEditor({
           />
         </label>
         <div className="admin-field admin-field--full">
-          <span>منصوبے کی مرکزی تصویر *</span>
+          <span>Main project image *</span>
           <div className="admin-media-picker">
             {selectedImage && (
               <img src={selectedImage.url} alt={selectedImage.altText} />
@@ -969,7 +970,7 @@ function ProgramEditor({
               value={program.image}
               onChange={(event) => onChange("image", event.target.value)}
             >
-              <option value="">تصویر منتخب کریں</option>
+              <option value="">Select an image</option>
               {images.map((item) => (
                 <option key={item.id} value={item.url}>
                   {item.name}
@@ -979,16 +980,16 @@ function ProgramEditor({
           </div>
         </div>
         <label className="admin-field admin-field--full">
-          <span>تصویر کی وضاحت (Accessibility)</span>
+          <span>Image description for accessibility</span>
           <input
             dir="auto"
             value={program.imageAlt}
             onChange={(event) => onChange("imageAlt", event.target.value)}
-            placeholder="تصویر میں کیا دکھائی دے رہا ہے؟"
+            placeholder="Describe what appears in the image"
           />
         </label>
         <label className="admin-field admin-field--full">
-          <span>نمایاں تعارفی عبارت</span>
+          <span>Featured introduction</span>
           <textarea
             dir="auto"
             rows={3}
@@ -997,7 +998,7 @@ function ProgramEditor({
           />
         </label>
         <label className="admin-field admin-field--full">
-          <span>مکمل تفصیل</span>
+          <span>Full description</span>
           <textarea
             dir="auto"
             rows={6}
@@ -1006,7 +1007,7 @@ function ProgramEditor({
           />
         </label>
         <label className="admin-field admin-field--full">
-          <span>اہم نکات — ہر لائن پر ایک</span>
+          <span>Key points, one per line</span>
           <textarea
             dir="auto"
             rows={5}
@@ -1026,7 +1027,7 @@ function ProgramEditor({
             disabled={busyAction !== null}
             onClick={onDelete}
           >
-            {busyAction === "program-delete" ? "حذف ہو رہا ہے…" : "حذف کریں"}
+            {busyAction === "program-delete" ? "Deleting…" : "Delete"}
           </button>
         )}
         <span className="admin-form-actions__spacer" />
@@ -1037,7 +1038,7 @@ function ProgramEditor({
             disabled={busyAction !== null}
             onClick={() => onSave("unpublish")}
           >
-            لائیو سے ہٹائیں
+            Unpublish
           </button>
         )}
         <button
@@ -1047,8 +1048,8 @@ function ProgramEditor({
           onClick={() => onSave("draft")}
         >
           {busyAction === "program-draft"
-            ? "محفوظ ہو رہا ہے…"
-            : "Draft محفوظ کریں"}
+            ? "Saving…"
+            : "Save Draft"}
         </button>
         <button
           type="button"
@@ -1057,8 +1058,8 @@ function ProgramEditor({
           onClick={() => onSave("publish")}
         >
           {busyAction === "program-publish"
-            ? "شائع ہو رہا ہے…"
-            : "Publish کریں"}
+            ? "Publishing…"
+            : "Publish"}
         </button>
       </div>
     </article>
@@ -1100,7 +1101,7 @@ function ContentEditorField({
             value={value}
             onChange={(event) => onChange(event.target.value)}
           >
-            <option value="">میڈیا منتخب کریں</option>
+            <option value="">Select media</option>
             {choices.map((item) => (
               <option key={item.id} value={item.url}>
                 {item.name}
