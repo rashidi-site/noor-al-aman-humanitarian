@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPublishedSiteContent } from "@/lib/cms";
+import { getPublishedSiteContent } from "@/lib/supabase-cms";
 
 export default async function SiteFooter() {
   const content = await getPublishedSiteContent();

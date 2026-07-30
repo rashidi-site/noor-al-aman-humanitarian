@@ -3,7 +3,8 @@ import Link from "next/link";
 import PageHero from "../components/PageHero";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
-import { getPublishedSiteContent } from "@/lib/cms";
+import { getPublishedSiteContent } from "@/lib/supabase-cms";
+import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -158,6 +159,20 @@ export default async function ContactPage() {
                 </div>
               </article>
             </div>
+          </div>
+        </section>
+
+        <section className="section section--soft">
+          <div className="shell contact-form-panel">
+            <div>
+              <p className="eyebrow">Send a message</p>
+              <h2>Contact Noor Al-Aman</h2>
+              <p className="lead">
+                Use this secure form for partnerships, volunteering, media
+                enquiries, or verified donation information.
+              </p>
+            </div>
+            <ContactForm />
           </div>
         </section>
 

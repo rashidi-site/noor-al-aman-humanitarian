@@ -3,7 +3,10 @@ import Link from "next/link";
 import PageHero from "../components/PageHero";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
-import { getPublishedPrograms, getPublishedSiteContent } from "@/lib/cms";
+import {
+  getPublishedPrograms,
+  getPublishedSiteContent,
+} from "@/lib/supabase-cms";
 
 export const metadata: Metadata = {
   title: "Support Our Work",

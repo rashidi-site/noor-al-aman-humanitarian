@@ -4,7 +4,10 @@ import PageHero from "../components/PageHero";
 import ProjectMediaGallery from "../components/ProjectMediaGallery";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
-import { getPublishedPrograms, getPublishedSiteContent } from "@/lib/cms";
+import {
+  getPublishedPrograms,
+  getPublishedSiteContent,
+} from "@/lib/supabase-cms";
 import type { Program } from "../site-data";
 
 export const metadata: Metadata = {

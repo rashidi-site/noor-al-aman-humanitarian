@@ -4,7 +4,7 @@ import {
   saveProgram,
   type ProgramInput,
   type ProgramSaveAction,
-} from "@/lib/cms";
+} from "@/lib/supabase-cms";
 
 export const dynamic = "force-dynamic";
 

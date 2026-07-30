@@ -21,7 +21,10 @@ import Link from "next/link";
 import ProgramCard from "./components/ProgramCard";
 import SiteFooter from "./components/SiteFooter";
 import SiteHeader from "./components/SiteHeader";
-import { getPublishedPrograms, getPublishedSiteContent } from "@/lib/cms";
+import {
+  getPublishedPrograms,
+  getPublishedSiteContent,
+} from "@/lib/supabase-cms";
 
 export const dynamic = "force-dynamic";
 

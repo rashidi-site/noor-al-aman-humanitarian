@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ChangeEvent } from "react";
 import type { ContentField, ContentPage } from "../cms-content";
-import type { AdminDashboardData } from "@/lib/cms";
+import type { AdminDashboardData } from "@/lib/supabase-cms";
 import type { MediaItem, Program, ProjectMedia } from "../site-data";
 
 type AdminTab = "overview" | "programs" | "content" | "media";

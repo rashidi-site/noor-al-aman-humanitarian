@@ -1,5 +1,5 @@
 import { requireAdminApi } from "@/app/admin-auth";
-import { getAdminContent, saveSiteContent } from "@/lib/cms";
+import { getAdminContent, saveSiteContent } from "@/lib/supabase-cms";
 
 export const dynamic = "force-dynamic";
 

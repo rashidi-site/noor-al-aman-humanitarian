@@ -3,7 +3,7 @@ import Link from "next/link";
 import PageHero from "../components/PageHero";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
-import { getPublishedSiteContent } from "@/lib/cms";
+import { getPublishedSiteContent } from "@/lib/supabase-cms";
 
 export const metadata: Metadata = {
   title: "About",

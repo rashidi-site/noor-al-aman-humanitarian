@@ -16,6 +16,114 @@
   --shadow: 0 24px 70px rgba(6, 42, 91, 0.12);
 }
 
+.contact-form-panel {
+  align-items: start;
+  display: grid;
+  gap: clamp(32px, 6vw, 80px);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
+.contact-form {
+  background: #fff;
+  border: 1px solid rgba(15, 62, 51, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 18px 45px rgba(15, 62, 51, 0.08);
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 38px);
+}
+
+.contact-form__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contact-form label {
+  color: var(--forest);
+  display: grid;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 7px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  background: #fbfcf9;
+  border: 1px solid rgba(15, 62, 51, 0.2);
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: var(--gold);
+  outline: 3px solid rgba(196, 148, 51, 0.15);
+}
+
+.contact-form .button {
+  justify-self: start;
+}
+
+.contact-form__trap {
+  left: -10000px;
+  position: absolute;
+}
+
+.contact-form__status {
+  border-radius: 10px;
+  font-weight: 700;
+  margin: 0;
+  padding: 12px 14px;
+}
+
+.contact-form__status--success {
+  background: #eaf7ef;
+  color: #145c35;
+}
+
+.contact-form__status--error,
+.admin-login-error {
+  background: #fff0ee;
+  color: #982f25;
+}
+
+.admin-login-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.admin-login-form .admin-button {
+  justify-content: center;
+  width: 100%;
+}
+
+.admin-login-error {
+  border-radius: 9px;
+  font-size: 14px;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.admin-login-home {
+  color: var(--forest);
+  display: inline-block;
+  font-weight: 700;
+  margin-top: 20px;
+}
+
+@media (max-width: 760px) {
+  .contact-form-panel,
+  .contact-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

@@ -1,9 +1,8 @@
 import { requireAdminApi } from "@/app/admin-auth";
 import {
-  createMediaRecord,
-  getMediaBucket,
   getUploadedMedia,
-} from "@/lib/cms";
+  uploadMediaFile,
+} from "@/lib/supabase-cms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,18 +14,7 @@ const IMAGE_TYPES = new Set([
   "image/webp",
 ]);
 const VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
-const IMAGE_LIMIT = 25 * 1024 * 1024;
-const VIDEO_LIMIT = 80 * 1024 * 1024;
-
-function safeFileName(name: string): string {
-  const cleaned = name
-    .normalize("NFKD")
-    .replace(/[^\w.-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(-120);
-  return cleaned || "upload";
-}
+const FILE_LIMIT = 50 * 1024 * 1024;
 
 function apiError(error: unknown, status = 400): Response {
   return Response.json(
@@ -53,7 +41,6 @@ export async function POST(request: Request) {
   const denied = await requireAdminApi();
   if (denied) return denied;
 
-  let objectKey: string | null = null;
   try {
     const form = await request.formData();
     const file = form.get("file");
@@ -75,41 +62,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const limit = isVideo ? VIDEO_LIMIT : IMAGE_LIMIT;
-    if (file.size > limit) {
+    if (file.size > FILE_LIMIT) {
       return apiError(
-        new Error(
-          isVideo
-            ? "Videos must be 80 MB or smaller."
-            : "Images must be 25 MB or smaller.",
-        ),
+        new Error("Files must be 50 MB or smaller on the free storage plan."),
         413,
       );
     }
 
-    const id = crypto.randomUUID();
-    objectKey = `uploads/${id}/${safeFileName(file.name)}`;
-    const bucket = getMediaBucket();
-    await bucket.put(objectKey, file.stream(), {
-      httpMetadata: { contentType },
-      customMetadata: {
-        originalName: file.name.slice(0, 250),
-      },
-    });
-
-    const media = await createMediaRecord({
-      id,
-      objectKey,
-      name: file.name.slice(0, 250),
-      contentType,
-      size: file.size,
-      altText: altText || file.name.replace(/\.[^.]+$/, ""),
+    const media = await uploadMediaFile({
+      file,
+      altText,
     });
     return Response.json({ media }, { status: 201 });
   } catch (error) {
-    if (objectKey) {
-      await getMediaBucket().delete(objectKey).catch(() => undefined);
-    }
     return apiError(error);
   }
 }
