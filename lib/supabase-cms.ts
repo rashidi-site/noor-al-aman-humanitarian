@@ -54,6 +54,30 @@ type MediaRow = {
   created_at: string;
 };
 
+type ContactSubmissionRow = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  status: string;
+  created_at: string;
+};
+
+export type ContactSubmissionStatus = "new" | "read";
+
+export type ContactSubmission = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  status: ContactSubmissionStatus;
+  createdAt: string;
+};
+
 export type ProgramInput = {
   id?: string;
   slug?: string;
@@ -77,6 +101,7 @@ export type ProgramSaveAction = "draft" | "publish" | "unpublish";
 export type AdminDashboardData = {
   programs: Program[];
   media: MediaItem[];
+  messages: ContactSubmission[];
   draftContent: Record<string, string>;
   publishedContent: Record<string, string>;
   contentHasChanges: boolean;
@@ -565,11 +590,59 @@ export async function saveContactSubmission(input: {
   throwOnError(error);
 }
 
+function rowToContactSubmission(row: ContactSubmissionRow): ContactSubmission {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    subject: row.subject,
+    message: row.message,
+    status: row.status === "read" ? "read" : "new",
+    createdAt: row.created_at,
+  };
+}
+
+export async function getContactSubmissions(): Promise<ContactSubmission[]> {
+  await ensureCmsReady();
+  const { data, error } = await getSupabaseAdmin()
+    .from("contact_submissions")
+    .select("*")
+    .order("created_at", { ascending: false });
+  throwOnError(error);
+  return ((data ?? []) as ContactSubmissionRow[]).map(rowToContactSubmission);
+}
+
+export async function updateContactSubmissionStatus(
+  id: string,
+  status: ContactSubmissionStatus,
+): Promise<ContactSubmission> {
+  await ensureCmsReady();
+  const result = await getSupabaseAdmin()
+    .from("contact_submissions")
+    .update({ status })
+    .eq("id", id)
+    .select("*")
+    .single();
+  throwOnError(result.error);
+  return rowToContactSubmission(result.data as ContactSubmissionRow);
+}
+
+export async function deleteContactSubmission(id: string): Promise<void> {
+  await ensureCmsReady();
+  const { error } = await getSupabaseAdmin()
+    .from("contact_submissions")
+    .delete()
+    .eq("id", id);
+  throwOnError(error);
+}
+
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [programs, media, content] = await Promise.all([
+  const [programs, media, messages, content] = await Promise.all([
     getAllPrograms(),
     getAllMedia(),
+    getContactSubmissions(),
     getAdminContent(),
   ]);
-  return { programs, media, ...content };
+  return { programs, media, messages, ...content };
 }

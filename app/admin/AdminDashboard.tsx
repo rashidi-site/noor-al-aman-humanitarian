@@ -2,10 +2,13 @@
 
 import { useMemo, useState, type ChangeEvent } from "react";
 import type { ContentField, ContentPage } from "../cms-content";
-import type { AdminDashboardData } from "@/lib/supabase-cms";
+import type {
+  AdminDashboardData,
+  ContactSubmission,
+} from "@/lib/supabase-cms";
 import type { MediaItem, Program, ProjectMedia } from "../site-data";
 
-type AdminTab = "overview" | "programs" | "content" | "media";
+type AdminTab = "overview" | "messages" | "programs" | "content" | "media";
 
 type Notice = {
   type: "success" | "error";
@@ -27,6 +30,7 @@ const navigation: Array<{
   icon: string;
 }> = [
   { id: "overview", label: "Overview", hint: "Dashboard summary", icon: "⌂" },
+  { id: "messages", label: "Messages", hint: "Contact inbox", icon: "✉" },
   { id: "programs", label: "Projects", hint: "Manage programmes", icon: "▦" },
   { id: "content", label: "Website Pages", hint: "Edit page content", icon: "✎" },
   { id: "media", label: "Media", hint: "Images and videos", icon: "▣" },
@@ -65,6 +69,15 @@ function humanFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function messageDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
 async function readJsonResponse<T>(response: Response): Promise<T> {
   const data = (await response.json()) as T & { error?: string };
   if (!response.ok) {
@@ -83,6 +96,10 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [programs, setPrograms] = useState(initialData.programs);
   const [media, setMedia] = useState(initialData.media);
+  const [messages, setMessages] = useState(initialData.messages);
+  const [selectedMessageId, setSelectedMessageId] = useState(
+    initialData.messages[0]?.id ?? "",
+  );
   const [draftContent, setDraftContent] = useState(initialData.draftContent);
   const [publishedContent, setPublishedContent] = useState(
     initialData.publishedContent,
@@ -114,6 +131,9 @@ export default function AdminDashboard({
     (program) => !program.isPublished || program.hasUnpublishedChanges,
   ).length;
   const uploadedCount = media.filter((item) => !item.isProtected).length;
+  const unreadCount = messages.filter((message) => message.status === "new").length;
+  const selectedMessage =
+    messages.find((message) => message.id === selectedMessageId) ?? messages[0];
 
   function chooseTab(tab: AdminTab) {
     setActiveTab(tab);
@@ -124,6 +144,93 @@ export default function AdminDashboard({
   function showNotice(type: Notice["type"], message: string) {
     setNotice({ type, message });
     window.setTimeout(() => setNotice(null), 6000);
+  }
+
+  async function openMessage(message: ContactSubmission) {
+    setSelectedMessageId(message.id);
+    if (message.status === "read") return;
+
+    setMessages((current) =>
+      current.map((item) =>
+        item.id === message.id ? { ...item, status: "read" } : item,
+      ),
+    );
+    try {
+      const response = await fetch(
+        `/api/admin/messages/${encodeURIComponent(message.id)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "read" }),
+        },
+      );
+      const data = await readJsonResponse<{ message: ContactSubmission }>(response);
+      setMessages((current) =>
+        current.map((item) => (item.id === data.message.id ? data.message : item)),
+      );
+    } catch (error) {
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === message.id ? { ...item, status: "new" } : item,
+        ),
+      );
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "The message could not be updated.",
+      );
+    }
+  }
+
+  async function setMessageUnread(message: ContactSubmission) {
+    setBusyAction(`message-unread-${message.id}`);
+    try {
+      const response = await fetch(
+        `/api/admin/messages/${encodeURIComponent(message.id)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "new" }),
+        },
+      );
+      const data = await readJsonResponse<{ message: ContactSubmission }>(response);
+      setMessages((current) =>
+        current.map((item) => (item.id === data.message.id ? data.message : item)),
+      );
+      showNotice("success", "Message marked as unread.");
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "The message could not be updated.",
+      );
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function removeMessage(message: ContactSubmission) {
+    const confirmed = window.confirm(
+      `Permanently delete the message from “${message.name}”?`,
+    );
+    if (!confirmed) return;
+
+    setBusyAction(`message-delete-${message.id}`);
+    try {
+      const response = await fetch(
+        `/api/admin/messages/${encodeURIComponent(message.id)}`,
+        { method: "DELETE" },
+      );
+      await readJsonResponse<{ deleted: boolean }>(response);
+      setMessages((current) => current.filter((item) => item.id !== message.id));
+      setSelectedMessageId("");
+      showNotice("success", "Message deleted.");
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "The message could not be deleted.",
+      );
+    } finally {
+      setBusyAction(null);
+    }
   }
 
   function startNewProgram() {
@@ -425,6 +532,11 @@ export default function AdminDashboard({
                 <strong>{item.label}</strong>
                 <small>{item.hint}</small>
               </span>
+              {item.id === "messages" && unreadCount > 0 && (
+                <em className="admin-nav-count" aria-label={`${unreadCount} unread messages`}>
+                  {unreadCount}
+                </em>
+              )}
             </button>
           ))}
         </nav>
@@ -515,6 +627,13 @@ export default function AdminDashboard({
                     <p>Your uploaded files</p>
                   </div>
                 </article>
+                <article>
+                  <span className="admin-stat-icon admin-stat-icon--violet">✉</span>
+                  <div>
+                    <strong>{unreadCount}</strong>
+                    <p>Unread messages</p>
+                  </div>
+                </article>
               </div>
 
               <div className="admin-overview-grid">
@@ -526,6 +645,11 @@ export default function AdminDashboard({
                     </div>
                   </div>
                   <div className="admin-quick-actions">
+                    <button type="button" onClick={() => chooseTab("messages")}>
+                      <span>✉</span>
+                      <strong>Open messages</strong>
+                      <small>{unreadCount ? `${unreadCount} unread` : "Inbox is up to date"}</small>
+                    </button>
                     <button type="button" onClick={startNewProgram}>
                       <span>＋</span>
                       <strong>Add a new project</strong>
@@ -577,6 +701,120 @@ export default function AdminDashboard({
                   </p>
                 </div>
               </article>
+            </section>
+          )}
+
+          {activeTab === "messages" && (
+            <section>
+              <PageHeading
+                kicker="Contact inbox"
+                title="Messages"
+                description="Read messages sent through the website contact form and reply directly by email."
+              />
+
+              <div className="admin-inbox-summary">
+                <span>{messages.length} total messages</span>
+                <strong>{unreadCount} unread</strong>
+              </div>
+
+              {messages.length > 0 ? (
+                <div className="admin-inbox-layout">
+                  <div className="admin-message-list" aria-label="Contact messages">
+                    {messages.map((message) => (
+                      <button
+                        type="button"
+                        key={message.id}
+                        className={`${
+                          selectedMessage?.id === message.id ? "is-selected" : ""
+                        } ${message.status === "new" ? "is-unread" : ""}`}
+                        onClick={() => openMessage(message)}
+                      >
+                        <span className="admin-message-list__topline">
+                          <strong>{message.name}</strong>
+                          {message.status === "new" && <b>New</b>}
+                        </span>
+                        <span className="admin-message-list__subject">
+                          {message.subject}
+                        </span>
+                        <small>{messageDate(message.createdAt)}</small>
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedMessage && (
+                    <article className="admin-panel admin-message-detail">
+                      <div className="admin-message-detail__header">
+                        <div>
+                          <p className="admin-kicker">From</p>
+                          <h2>{selectedMessage.name}</h2>
+                          <span>{messageDate(selectedMessage.createdAt)}</span>
+                        </div>
+                        <span
+                          className={`admin-message-status admin-message-status--${selectedMessage.status}`}
+                        >
+                          {selectedMessage.status === "new" ? "New" : "Read"}
+                        </span>
+                      </div>
+
+                      <div className="admin-message-contact">
+                        <a href={`mailto:${selectedMessage.email}`}>
+                          {selectedMessage.email}
+                        </a>
+                        {selectedMessage.phone && (
+                          <a href={`tel:${selectedMessage.phone}`}>
+                            {selectedMessage.phone}
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="admin-message-body">
+                        <p className="admin-kicker">Subject</p>
+                        <h3>{selectedMessage.subject}</h3>
+                        <p>{selectedMessage.message}</p>
+                      </div>
+
+                      <div className="admin-message-actions">
+                        <a
+                          className="admin-button admin-button--primary"
+                          href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(
+                            `Re: ${selectedMessage.subject}`,
+                          )}`}
+                        >
+                          Reply by email
+                        </a>
+                        {selectedMessage.status === "read" && (
+                          <button
+                            type="button"
+                            className="admin-button admin-button--secondary"
+                            disabled={busyAction !== null}
+                            onClick={() => setMessageUnread(selectedMessage)}
+                          >
+                            {busyAction === `message-unread-${selectedMessage.id}`
+                              ? "Updating…"
+                              : "Mark unread"}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="admin-button admin-button--danger"
+                          disabled={busyAction !== null}
+                          onClick={() => removeMessage(selectedMessage)}
+                        >
+                          {busyAction === `message-delete-${selectedMessage.id}`
+                            ? "Deleting…"
+                            : "Delete"}
+                        </button>
+                      </div>
+                    </article>
+                  )}
+                </div>
+              ) : (
+                <div className="admin-empty admin-inbox-empty">
+                  <span>✉</span>
+                  <h2>No messages yet</h2>
+                  <p>New contact form messages will appear here automatically.</p>
+                </div>
+              )}
             </section>
           )}
 
