@@ -570,9 +570,11 @@ export default function AdminDashboard({
             <span />
           </button>
           <div className="admin-topbar__user">
-            <span className="admin-avatar">
-              {(userName || userEmail).charAt(0).toUpperCase()}
-            </span>
+            <img
+              className="admin-avatar"
+              src="/media/noor-al-aman-mark.webp"
+              alt="Noor Al-Aman Humanitarian"
+            />
             <span>
               <strong>{userName}</strong>
               <small>{userEmail}</small>
