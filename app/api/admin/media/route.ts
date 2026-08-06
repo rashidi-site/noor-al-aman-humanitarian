@@ -14,7 +14,8 @@ const IMAGE_TYPES = new Set([
   "image/webp",
 ]);
 const VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
-const FILE_LIMIT = 50 * 1024 * 1024;
+const IMAGE_FILE_LIMIT = 25 * 1024 * 1024;
+const VIDEO_FILE_LIMIT = 50 * 1024 * 1024;
 
 function apiError(error: unknown, status = 400): Response {
   return Response.json(
@@ -62,9 +63,14 @@ export async function POST(request: Request) {
       );
     }
 
-    if (file.size > FILE_LIMIT) {
+    const fileLimit = isVideo ? VIDEO_FILE_LIMIT : IMAGE_FILE_LIMIT;
+    if (file.size > fileLimit) {
       return apiError(
-        new Error("Files must be 50 MB or smaller on the free storage plan."),
+        new Error(
+          isVideo
+            ? "Videos must be 50 MB or smaller on the free storage plan."
+            : "Images must be 25 MB or smaller on the free storage plan.",
+        ),
         413,
       );
     }
