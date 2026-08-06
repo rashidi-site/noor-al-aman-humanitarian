@@ -36,6 +36,27 @@ const navigation: Array<{
   { id: "media", label: "Media", hint: "Images and videos", icon: "▣" },
 ];
 
+const IMAGE_UPLOAD_LIMIT = 25 * 1024 * 1024;
+const VIDEO_UPLOAD_LIMIT = 50 * 1024 * 1024;
+
+function uploadValidationError(file: File): string | null {
+  const contentType = file.type.toLowerCase().split(";")[0];
+  const isImage = contentType.startsWith("image/");
+  const isVideo = contentType.startsWith("video/");
+
+  if (!isImage && !isVideo) {
+    return "Use a JPG, PNG, WebP, AVIF, GIF, MP4, or WebM file.";
+  }
+
+  const limit = isVideo ? VIDEO_UPLOAD_LIMIT : IMAGE_UPLOAD_LIMIT;
+  if (file.size > limit) {
+    const limitLabel = isVideo ? "50 MB" : "25 MB";
+    return `“${file.name}” is too large. The maximum size is ${limitLabel}. Please compress or shorten the file and try again.`;
+  }
+
+  return null;
+}
+
 function newProgramTemplate(programs: Program[]): Program {
   const highestOrder = programs.reduce(
     (highest, program) => Math.max(highest, program.sortOrder),
@@ -79,10 +100,32 @@ function messageDate(value: string): string {
 }
 
 async function readJsonResponse<T>(response: Response): Promise<T> {
-  const data = (await response.json()) as T & { error?: string };
-  if (!response.ok) {
-    throw new Error(data.error || "The request could not be completed.");
+  const body = await response.text();
+  let data: (T & { error?: string }) | null = null;
+
+  try {
+    data = JSON.parse(body) as T & { error?: string };
+  } catch {
+    // Cloudflare and storage providers can return plain text for oversized bodies.
   }
+
+  if (!response.ok) {
+    const isTooLarge =
+      response.status === 413 || body.toLowerCase().includes("payload too large");
+    if (isTooLarge) {
+      throw new Error(
+        "This file is too large. Videos must be 50 MB or smaller and images must be 25 MB or smaller. Please compress or shorten the file and try again.",
+      );
+    }
+    throw new Error(
+      data?.error || body.trim() || "The request could not be completed.",
+    );
+  }
+
+  if (!data) {
+    throw new Error("The server returned an unreadable response. Please try again.");
+  }
+
   return data;
 }
 
@@ -373,6 +416,14 @@ export default function AdminDashboard({
 
   function onFileChosen(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
+    const validationError = file ? uploadValidationError(file) : null;
+    if (validationError) {
+      setUploadFile(null);
+      setUploadKey((current) => current + 1);
+      showNotice("error", validationError);
+      return;
+    }
+
     setUploadFile(file);
     if (file && !uploadAlt) {
       setUploadAlt(file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
@@ -426,6 +477,14 @@ export default function AdminDashboard({
     if (files.length === 0) return false;
     if (files.length > 12) {
       showNotice("error", "Upload up to 12 files at a time.");
+      return false;
+    }
+
+    const validationError = files
+      .map(uploadValidationError)
+      .find((message): message is string => Boolean(message));
+    if (validationError) {
+      showNotice("error", validationError);
       return false;
     }
 
@@ -1030,7 +1089,7 @@ export default function AdminDashboard({
                   <h2>Upload a New File</h2>
                   <p>
                     Images: JPG, PNG, WebP, AVIF, or GIF up to 25 MB. Videos:
-                    MP4 or WebM up to 80 MB.
+                    MP4 or WebM up to 50 MB.
                   </p>
                   <div className="admin-upload-fields">
                     <label className="admin-file-input">
