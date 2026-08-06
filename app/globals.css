@@ -1468,32 +1468,44 @@ h3 {
   }
 
   .site-header {
-    height: 70px;
+    height: 60px;
   }
 
   .brand {
     min-width: 0;
+    gap: 8px;
   }
 
   .brand img {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
   }
 
   .brand strong {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .brand small {
-    font-size: 9px;
+    margin-top: 5px;
+    font-size: 8px;
+    letter-spacing: 0.18em;
+  }
+
+  .mobile-nav summary {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mobile-nav nav {
+    top: 48px;
   }
 
   .home-hero {
-    min-height: calc(100svh - 70px);
+    min-height: calc(100svh - 60px);
   }
 
   .home-hero__content {
-    padding-block: 70px 46px;
+    padding-block: 58px 46px;
   }
 
   .home-hero h1 {
@@ -1604,8 +1616,16 @@ h3 {
 }
 
 @media (max-width: 440px) {
-  .brand span {
-    display: none;
+  .site-header .shell {
+    width: calc(100% - 24px);
+  }
+
+  .brand strong {
+    font-size: 13px;
+  }
+
+  .brand small {
+    font-size: 7.5px;
   }
 
   .button-row {
